@@ -1,0 +1,43 @@
+---
+title: "Corona_Case_Prediction"
+author: "Steven Smith, PhD"
+date: "3/18/2020"
+output: 
+  html_document: 
+    toc: yes
+---
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(plyr)
+library(plot.utils)
+
+Corona_Cases<-read.table("/Users/ssmith/Dropbox (Personal)/Corona_Cases",header = T,sep = "\t",stringsAsFactors = F)
+Corona_Prediction<-read.table("/Users/ssmith/Dropbox (Personal)/Corona_Prediction",header = T,sep = "\t",stringsAsFactors = F)
+Corona_Prediction$type<-"Predicted"
+Corona_Cases$type<-"Actual"
+Corona<-rbind(Corona_Prediction,Corona_Cases)
+Corona$Active_US_cases.log<-log(Corona$Active_US_cases,2)
+estimate_model<-lm(Corona,formula = Active_US_cases.log~Days_since_Mar17)
+slope<-estimate_model$coefficients[2]
+intercept<-estimate_model$coefficients[1]
+fit<-cor(log(Corona_Cases$Active_US_cases,2),Corona_Cases$Days_since_Mar17)
+key_milestones<-log(c(1E5,5E5,1E6),2)
+key_milestones.days<-(key_milestones - intercept)/slope
+Corona<-rbind(Corona,data.frame(Days_since_Mar17=key_milestones.days,Active_US_cases=2^key_milestones,Active_US_cases.log=key_milestones,type="Predicted"))
+(Corona.plot<-ggplot(Corona,aes(x=Days_since_Mar17,y=Active_US_cases.log,col=type))+
+    geom_abline(slope = slope,intercept = intercept,lty=2)+
+  geom_vline(xintercept = c(key_milestones.days),lty=2)+
+  geom_point(size=3)+
+  theme_bw()+
+  ylab("log2 Total U.S. Cases")+
+  xlab("Days since March 17, 2020")+
+  default_theme+
+  theme(legend.position = "bottom",axis.ticks.x = element_line(Corona$Days_since_Mar17))+
+  scale_color_manual(values = c("Actual"="#377eb8","Predicted"="#e41a1c")))
+  
+
+write_plot(Corona.plot,wd = "/Users/ssmith/Dropbox (Personal)/")
+```
+
