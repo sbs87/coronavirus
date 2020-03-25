@@ -2,6 +2,7 @@
 title: "Corona_Case_Prediction"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
+last_updated: "3/24/2020"
 output: 
   html_document: 
     toc: yes
@@ -52,12 +53,13 @@ library(tidyverse)
 library(plyr)
 library(reshape2)
 library(plot.utils)
+
 ##------------------------------------------
 
 ##------------------------------------------
 # GLOBAL VARIABLES
 ##------------------------------------------
-working_dir<-"/Users/stevensmith/coronavirus/" # don't forget trailing /
+working_dir<-"/Users/ssmith/coronavirus/" # don't forget trailing /
 results_dir<-paste0(working_dir,"results") # assumes diretory exists
 Corona_Cases.fn<-paste0(working_dir,"data/","total-cases-covid-19.csv") 
 ##------------------------------------------
@@ -81,7 +83,7 @@ myfunction<-function(x){
 * total number of cases, source: https://ourworldindata.org/coronavirus
 
 ```{r read_in_data, eval=T}
-Corona_Cases<-read.csv("/Users/stevensmith/Dropbox (Personal)/",header = T)
+Corona_Cases<-read.csv(Corona_Cases.fn,header = T)
 ```
 
 
@@ -114,22 +116,47 @@ A blurb about the approach, some context
 
 plot_data<-Corona_Cases[Corona_Cases$Code=="USA" & Corona_Cases$Days_Since_x>0,]
 (model_fit<-lm(formula = Total_confirmed_cases.log~Days_Since_x,data =plot_data[plot_data$Days_Since_x>40,] ))
-slope<-model_fit$coefficients[2]
-intercept<-model_fit$coefficients[1]
+(slope<-model_fit$coefficients[2])
+(intercept<-model_fit$coefficients[1])
+
+# Formula for # of cases by x days
+paste0("log10_total_cases = ",slope,"*days + ",intercept)
+paste0("total_cases = 10^(",slope,"*days + ",intercept,")")
+#Days untill... cases:
+# 2.5k, 5k and 1M:
+paste0("2.5k cases is ",(log(2.5E5,10) - intercept)/slope," days")
+paste0("5k cases is ",(log(5E5,10)- intercept)/slope," days")
+paste0("1M cases is ",(log(1E6,10)- intercept)/slope," days")
+
+tomorrow<-max(plot_data$Days_Since_x)+1
+tomorrow_plus1<-tomorrow+1
+tomorrow_plus2<-tomorrow+2
+tomorrow_plus3<-tomorrow+3
+next_week<-tomorrow+6
+
+prediction_model<-function(m=1,b=0,days=1){
+  total_cases.log<-m*days+b
+  total_cases<-10^total_cases.log
+  return(total_cases)
+}
+#today:
+plot_data[max(plot_data$Days_Since_x),]
+prediction_model(m = slope,b=intercept,days=c(tomorrow-1,tomorrow,tomorrow_plus1,tomorrow_plus2,tomorrow_plus3,next_week))
+
 cor(x = plot_data[plot_data$Days_Since_x>40,"Days_Since_x"],y = plot_data[plot_data$Days_Since_x>40,"Total_confirmed_cases.log"])
 
 
-total_cases.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
-  default_theme+
-  geom_point()
+(total_cases.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
+  #default_theme+
+  geom_point())
 
-total_cases.log.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
+(total_cases.log.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
   geom_abline(slope = slope,intercept = intercept,lty=2)+
-    default_theme+
-  geom_point()
+   #default_theme+
+  geom_point())
 
-write_plot(total_cases.plot,wd = results_dir)
-write_plot(total_cases.log.plot,wd = results_dir)
+#write_plot(total_cases.plot,wd = results_dir)
+#write_plot(total_cases.log.plot,wd = results_dir)
 
 
 
