@@ -7,20 +7,110 @@ output:
     toc: yes
 ---
 
-```{r}
+# The 2019-2020 Coronavirus Pandemic Analysis
+## BACKGROUND & APPROACH
+I wanted to track and trend the coronavirus outbreak on my own curiosity. There are some interesting questions that may fall out of this, as it is a very historic moment, including scientifically and analytically (we have a large amount of data being shared across the globe, analyzed in real-time). The world has come to a halt because of it.  
+This analysis attempts to answer the following questions (more to come):
+1. What does the trend of the pandemic look like to date?  
+2. What are future case predictions based on historical model?
+3. What interesting quirks or patterns emerge? 
+
+
+ASSUMPTIONS & LIMITATIONS: 
+* This data is limited by the source. I realized early on that depending on source there were conflicting # of cases. Originally I was using JHU data... but this was always 'ahead' of the Our World In Data. I noticed that JHU's website was buggy- you clicked on the U.S. stats but it didn't reflect the U.S.. So I changed data sources to be more consistent with what is presented in the media (and Our World In Data has more extensive plots I can compare my own to). An interesting aside might be why the discrepancy? Was I missing something?  
+* Defintiions are important as is the idea that multiple varibales accumulate in things like total cases (more testing for example).  
+
+SOURCE RAW DATA: https://ourworldindata.org/coronavirus
+INPUT DATA LOCATION: github (https://github.com/sbs87coronavirus/data)
+OUTPUT DATA LOCATIOn: github (https://github.com/sbs87coronavirus/results)
+
+## PRE-ANALYSIS
+The following sections are outside the scope of the 'analysis' but are still needed to prepare everything
+
+### UPSTREAM PROCESSING/ANALYSIS - N/A
+Process on a remote server
+```{bash process_remote_server, eval=F}
+# Typically code for processing data on a remote server. Used for tracability 
+
+##------------------------------------------
+# This denotes a subsection within the chunk
+##------------------------------------------
+
+##------------------------------------------
+
+```
+
+### SET UP ENVIORNMENT
+Load libraries and set global variables
+```{r setup, eval=T}
+
+##------------------------------------------
+## LIBRARIES
+##------------------------------------------
 library(ggplot2)
 library(tidyverse)
 library(plyr)
+library(reshape2)
 library(plot.utils)
+##------------------------------------------
 
-Corona_Cases<-read.csv("/Users/stevensmith/Dropbox (Personal)/total-cases-covid-19.csv",header = T)
+##------------------------------------------
+# GLOBAL VARIABLES
+##------------------------------------------
+working_dir<-"/Users/stevensmith/coronavirus/" # don't forget trailing /
+results_dir<-paste0(working_dir,"results") # assumes diretory exists
+Corona_Cases.fn<-paste0(working_dir,"data/","total-cases-covid-19.csv") 
+##------------------------------------------
 
+```
+### FUNCTIONS
+List of functions
+1. Function 1  
+2. Function 2  
+```{r functions, eval=F}
+##------------------------------------------
+## FUNCTION 1
+##------------------------------------------
+myfunction<-function(x){
+  return(x+1)
+}
+##------------------------------------------
+```
+
+### READ IN DATA
+* total number of cases, source: https://ourworldindata.org/coronavirus
+
+```{r read_in_data, eval=T}
+Corona_Cases<-read.csv("/Users/stevensmith/Dropbox (Personal)/",header = T)
+```
+
+
+### PROCESS DATA
+* Rename column headers  
+* Log10 transform total # cases  
+
+```{r process, eval=T}
+
+##------------------------------------------
+## Rename column headers
+##------------------------------------------
 Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases","Year"="Days_Since_x"))
+##------------------------------------------
 
+
+##------------------------------------------
+## log10 transform total # cases
+##------------------------------------------
 Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,10)
+##------------------------------------------
 
+```
+## ANALYSIS
+ 
 
-head(Corona_Cases)
+### Q1: What is the trend in total cases?
+A blurb about the approach, some context
+```{r question1, eval=T}
 
 plot_data<-Corona_Cases[Corona_Cases$Code=="USA" & Corona_Cases$Days_Since_x>0,]
 (model_fit<-lm(formula = Total_confirmed_cases.log~Days_Since_x,data =plot_data[plot_data$Days_Since_x>40,] ))
@@ -28,23 +118,34 @@ slope<-model_fit$coefficients[2]
 intercept<-model_fit$coefficients[1]
 cor(x = plot_data[plot_data$Days_Since_x>40,"Days_Since_x"],y = plot_data[plot_data$Days_Since_x>40,"Total_confirmed_cases.log"])
 
-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
+
+total_cases.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
+  default_theme+
   geom_point()
 
-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
+total_cases.log.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
   geom_abline(slope = slope,intercept = intercept,lty=2)+
+    default_theme+
   geom_point()
+
+write_plot(total_cases.plot,wd = results_dir)
+write_plot(total_cases.log.plot,wd = results_dir)
+
 
 
 ```
+### What is the predicted number of cases?
+
+
 # What is the prediction of COVID-19 based on model thus far?
+Additional questions:
+
 WHy did it take to day 40 to start a log linear trend?
 How long will it be till x number of cases?
 When will the plateu happen?
 Are any effects noticed with social distancing? Delays
-```{r prediction, eval=FALSE}
-#Corona_Cases$Total.confirmed.cases.of.COVID.19..cases.
-#Corona_Prediction<-read.table("/Users/ssmith/Dropbox (Personal)/Corona_Prediction",header = T,sep = "\t",stringsAsFactors = F)
+```{r prediction, eval=F}
+
 Corona_Prediction$type<-"Predicted"
 Corona_Cases$type<-"Actual"
 Corona<-rbind(Corona_Prediction,Corona_Cases)
@@ -71,3 +172,47 @@ Corona<-rbind(Corona,data.frame(Days_since_Mar17=key_milestones.days,Active_US_c
 write_plot(Corona.plot,wd = "/Users/ssmith/Dropbox (Personal)/")
 ```
 
+
+```{r question2, eval=F}
+
+##------------------------------------------
+## filter input_data1
+##------------------------------------------
+input_data1.filter<-fitler(input_data1,col1=="foo")
+##------------------------------------------
+
+##------------------------------------------
+## sub question 1
+##------------------------------------------
+table(input_data1.filter$col<5)
+##------------------------------------------
+
+##------------------------------------------
+## sub question 2
+##------------------------------------------
+table(input_data1.filter$col<10)
+##------------------------------------------
+
+##------------------------------------------
+## plot data
+##------------------------------------------
+(input_data1.filter.plot<-ggplot(input_data1.filter,aes(x=col1,y=col2.log))+
+   geom_point()+
+   default_plot_theme)
+write_plot(input_data1.filter.plot,wd=results_dir)
+##------------------------------------------
+
+```
+# CONCLUSION
+A concluding remark(s) on the major findings, preferabbly to pointers where the data can be found. 
+
+Helps to have a bullet point for each analysis chunk or an answer to each of the above 'questions':
+*  Answer 1. 
+*  Answer 2.  
+
+#END
+Cheatsheet:
+http://rmarkdown.rstudio.com>
+# TODO
+* mkdir the results dir if it doesn't exist
+* make ggplot a dependency for plot.utils?
