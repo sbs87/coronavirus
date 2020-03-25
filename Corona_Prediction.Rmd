@@ -60,7 +60,7 @@ library(plot.utils)
 # GLOBAL VARIABLES
 ##------------------------------------------
 working_dir<-"/Users/ssmith/coronavirus/" # don't forget trailing /
-results_dir<-paste0(working_dir,"results") # assumes diretory exists
+results_dir<-paste0(working_dir,"results/") # assumes diretory exists
 Corona_Cases.fn<-paste0(working_dir,"data/","total-cases-covid-19.csv") 
 ##------------------------------------------
 
@@ -147,16 +147,16 @@ cor(x = plot_data[plot_data$Days_Since_x>40,"Days_Since_x"],y = plot_data[plot_d
 
 
 (total_cases.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
-  #default_theme+
+  default_theme+
   geom_point())
 
 (total_cases.log.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
   geom_abline(slope = slope,intercept = intercept,lty=2)+
-   #default_theme+
+   default_theme+
   geom_point())
 
-#write_plot(total_cases.plot,wd = results_dir)
-#write_plot(total_cases.log.plot,wd = results_dir)
+write_plot(total_cases.plot,wd = results_dir)
+write_plot(total_cases.log.plot,wd = results_dir)
 
 
 
