@@ -13,8 +13,38 @@ library(tidyverse)
 library(plyr)
 library(plot.utils)
 
-Corona_Cases<-read.table("/Users/ssmith/Dropbox (Personal)/Corona_Cases",header = T,sep = "\t",stringsAsFactors = F)
-Corona_Prediction<-read.table("/Users/ssmith/Dropbox (Personal)/Corona_Prediction",header = T,sep = "\t",stringsAsFactors = F)
+Corona_Cases<-read.csv("/Users/stevensmith/Dropbox (Personal)/total-cases-covid-19.csv",header = T)
+
+Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases","Year"="Days_Since_x"))
+
+Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,10)
+
+
+head(Corona_Cases)
+
+plot_data<-Corona_Cases[Corona_Cases$Code=="USA" & Corona_Cases$Days_Since_x>0,]
+(model_fit<-lm(formula = Total_confirmed_cases.log~Days_Since_x,data =plot_data[plot_data$Days_Since_x>40,] ))
+slope<-model_fit$coefficients[2]
+intercept<-model_fit$coefficients[1]
+cor(x = plot_data[plot_data$Days_Since_x>40,"Days_Since_x"],y = plot_data[plot_data$Days_Since_x>40,"Total_confirmed_cases.log"])
+
+ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
+  geom_point()
+
+ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
+  geom_abline(slope = slope,intercept = intercept,lty=2)+
+  geom_point()
+
+
+```
+# What is the prediction of COVID-19 based on model thus far?
+WHy did it take to day 40 to start a log linear trend?
+How long will it be till x number of cases?
+When will the plateu happen?
+Are any effects noticed with social distancing? Delays
+```{r prediction, eval=FALSE}
+#Corona_Cases$Total.confirmed.cases.of.COVID.19..cases.
+#Corona_Prediction<-read.table("/Users/ssmith/Dropbox (Personal)/Corona_Prediction",header = T,sep = "\t",stringsAsFactors = F)
 Corona_Prediction$type<-"Predicted"
 Corona_Cases$type<-"Actual"
 Corona<-rbind(Corona_Prediction,Corona_Cases)
