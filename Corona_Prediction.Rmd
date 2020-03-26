@@ -83,7 +83,7 @@ myfunction<-function(x){
 * total number of cases, source: https://ourworldindata.org/coronavirus
 
 ```{r read_in_data, eval=T}
-Corona_Cases<-read.csv(Corona_Cases.fn,header = T)
+Corona_Cases<-read.csv(Corona_Cases.fn,header = T,stringsAsFactors = F)
 ```
 
 
@@ -96,7 +96,13 @@ Corona_Cases<-read.csv(Corona_Cases.fn,header = T)
 ##------------------------------------------
 ## Rename column headers
 ##------------------------------------------
-Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases","Year"="Days_Since_x"))
+#Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases","Year"="Days_Since_x"))
+Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases"))
+library(lubridate)
+#March 25 - they changed from # of days to date format
+Corona_Cases$Date<-as.Date(Corona_Cases$Date,format = "%B %d, %Y")
+Corona_Cases$Date.numeric<-as.numeric(Corona_Cases$Date)
+as.Date(Corona_Cases$Date.numeric,origin = Corona_Cases$Date)
 ##------------------------------------------
 
 
@@ -106,6 +112,7 @@ Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVI
 Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,10)
 ##------------------------------------------
 
+
 ```
 ## ANALYSIS
  
@@ -114,8 +121,17 @@ Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,1
 A blurb about the approach, some context
 ```{r question1, eval=T}
 
-plot_data<-Corona_Cases[Corona_Cases$Code=="USA" & Corona_Cases$Days_Since_x>0,]
-(model_fit<-lm(formula = Total_confirmed_cases.log~Days_Since_x,data =plot_data[plot_data$Days_Since_x>40,] ))
+##------------------------------------------
+## Compute # of days since 100th case
+##------------------------------------------
+
+plot_data<-filter(Corona_Cases,Code=="USA" & Total_confirmed_cases>0)
+inflection<-min(plot_data[plot_data$Total_confirmed_cases>100,"Date.numeric"])
+plot_data$Days_since_100<-plot_data$Date.numeric-inflection
+
+
+#plot_data<-Corona_Cases[Corona_Cases$Code=="USA" & Corona_Cases$Days_Since_x>0,]
+(model_fit<-lm(formula = Total_confirmed_cases.log~Days_since_100,data =plot_data[plot_data$Days_since_100>0,] ))
 (slope<-model_fit$coefficients[2])
 (intercept<-model_fit$coefficients[1])
 
@@ -128,36 +144,39 @@ paste0("2.5k cases is ",(log(2.5E5,10) - intercept)/slope," days")
 paste0("5k cases is ",(log(5E5,10)- intercept)/slope," days")
 paste0("1M cases is ",(log(1E6,10)- intercept)/slope," days")
 
-tomorrow<-max(plot_data$Days_Since_x)+1
-tomorrow_plus1<-tomorrow+1
-tomorrow_plus2<-tomorrow+2
-tomorrow_plus3<-tomorrow+3
-next_week<-tomorrow+6
+
+today<-max(plot_data$Days_since_100)
+#tomorrow<-today+1
+#tomorrow_plus1<-tomorrow+1
+#tomorrow_plus2<-tomorrow+2
+#tomorrow_plus3<-tomorrow+3
+#next_week<-today+7
+predicted_days<-today+c(1,2,3,7)
 
 prediction_model<-function(m=1,b=0,days=1){
   total_cases.log<-m*days+b
   total_cases<-10^total_cases.log
-  prediction<-data.frame(Days_Since_x=days,Total_confirmed_cases=total_cases,Total_confirmed_cases.log=total_cases.log)
+  prediction<-data.frame(Days_since_100=days,Total_confirmed_cases=total_cases,Total_confirmed_cases.log=total_cases.log)
   return(prediction)
 }
 #today:
-plot_data[max(plot_data$Days_Since_x),]
-prediction_model(m = slope,b=intercept,days=c(tomorrow-1,tomorrow,tomorrow_plus1,tomorrow_plus2,tomorrow_plus3,next_week))
+plot_data[plot_data$Days_since_100==today,]
+prediction_model(m = slope,b=intercept,days=predicted_days)
 
-cor(x = plot_data[plot_data$Days_Since_x>40,"Days_Since_x"],y = plot_data[plot_data$Days_Since_x>40,"Total_confirmed_cases.log"])
+cor(x = plot_data[plot_data$Days_since_100>0,"Days_since_100"],y = plot_data[plot_data$Days_since_100>0,"Total_confirmed_cases.log"])
 
 
-(total_cases.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases))+
+(total_cases.25.plot<-ggplot(plot_data,aes(x=Days_since_100,y=Total_confirmed_cases))+
   default_theme+
   geom_point())
 
-(total_cases.log.plot<-ggplot(plot_data,aes(x=Days_Since_x,y=Total_confirmed_cases.log))+
+(total_cases.25.log.plot<-ggplot(plot_data,aes(x=Days_since_100,y=Total_confirmed_cases.log))+
   geom_abline(slope = slope,intercept = intercept,lty=2)+
    default_theme+
   geom_point())
 
-write_plot(total_cases.plot,wd = results_dir)
-write_plot(total_cases.log.plot,wd = results_dir)
+write_plot(total_cases.25.plot,wd = results_dir)
+write_plot(total_cases.25.log.plot,wd = results_dir)
 
 
 
@@ -174,34 +193,32 @@ When will the plateu happen?
 Are any effects noticed with social distancing? Delays
 ```{r prediction, eval=F}
 
-Corona_Cases$type<-"Historical"
+plot_data$type<-"Historical"
 names(Corona_Cases)
-today<-max(plot_data$Days_Since_x)
-tomorrow<-max(plot_data$Days_Since_x)+1
-tomorrow_plus1<-tomorrow+1
-tomorrow_plus2<-tomorrow+2
-tomorrow_plus3<-tomorrow+3
-next_week<-tomorrow+6
 
+#Corona_Cases_wprediction<-rbind.fill(Corona_Cases,data.frame(Code="USA",type="MAR25_prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
+tmp<-Corona_Cases_wprediction
+Corona_Cases_wprediction<-rbind.fill(plot_data,data.frame(Code="USA",type="MAR26_prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
 
-predicted_days<-today+c(1,2,3,7)
-Corona_Cases_wprediction<-rbind.fill(Corona_Cases,data.frame(Code="USA",type="Prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
-plot_data.prediction<-filter(Corona_Cases_wprediction,Code=="USA" & Days_Since_x>0)
+plot_data.prediction<-Corona_Cases_wprediction #filter(Corona_Cases_wprediction,Code=="USA" )
+prediction_values<-prediction_model(m=slope,b=intercept,days = predicted_days)$Total_confirmed_cases
 
-
-
-(predicted.plot<-ggplot(plot_data.prediction,aes(x=Days_Since_x,y=Total_confirmed_cases.log,col=type))+
+mar26_prediction<-data.frame(type="MAR26_prediction",Days_since_100=predicted_days-7,Total_confirmed_cases.log=log(prediction_values,10),text_display=paste0(c("tomorrow : ","two_days: ","three_days: ","next_week: "),round(prediction_values,digits = 0)))
+mar25_prediction<-data.frame(type="MAR25_prediction",Days_since_100=predicted_days-20,Total_confirmed_cases.log=log(c(56490.42,75400.32,100640.22,319422.18),10),text_display=paste0(c("today's (actual=55231): ","tomorrow: ","two_days: ","6 days: "),round(c(56490.42,75400.32,100640.22,319422.18),digits = 0)))
+              
+(predicted.25.plot<-ggplot(plot_data.prediction,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
     geom_abline(slope = slope,intercept = intercept,lty=2)+
   #geom_vline(xintercept = c(key_milestones.days),lty=2)+
   geom_point(size=3)+
 default_theme+
-  ylab("log2 Total U.S. Cases")+
+  ylab("log10 Total U.S. Cases")+
   xlab("Days since X")+
   theme(legend.position = "bottom")+
-    geom_text(data = data.frame(type="Prediction",Days_Since_x=predicted_days-7,Total_confirmed_cases.log=log(c(56490.42,75400.32,100640.22,319422.18),10),text_display=paste0(c("tomorrow : ","two_days: ","three_days: ","next_week: "),round(c(56490.42,75400.32,100640.22,319422.18),digits = 0))),aes(label=text_display))+
-  scale_color_manual(values = c("Historical"="#377eb8","Prediction"="#e41a1c")))
+    geom_text(data = mar25_prediction,aes(label=text_display))+
+        geom_text(data = mar26_prediction,aes(label=text_display))+
+  scale_color_manual(values = c("Historical"="#377eb8","MAR25_prediction"="orange","MAR26_prediction"="#e41a1c")))
   
-write_plot(predicted.plot,wd = results_dir)
+write_plot(predicted.25.plot,wd = results_dir)
 
 ```
 
