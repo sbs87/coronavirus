@@ -28,22 +28,20 @@ OUTPUT DATA LOCATIOn: github (https://github.com/sbs87coronavirus/results)
 ## PRE-ANALYSIS
 The following sections are outside the scope of the 'analysis' but are still needed to prepare everything
 
-### UPSTREAM PROCESSING/ANALYSIS - N/A
-Process on a remote server
+### UPSTREAM PROCESSING/ANALYSIS (N/A)
+Not applicable - No analysis performed on remote server
+
 ```{bash process_remote_server, eval=F}
-# Typically code for processing data on a remote server. Used for tracability 
-
-##------------------------------------------
-# This denotes a subsection within the chunk
-##------------------------------------------
-
-##------------------------------------------
+# No analysis performed on remote server
 
 ```
 
 ### SET UP ENVIORNMENT
 Load libraries and set global variables
 ```{r setup, eval=T}
+
+# clear previous enviornment
+rm(list = ls())
 
 ##------------------------------------------
 ## LIBRARIES
@@ -53,15 +51,19 @@ library(tidyverse)
 library(plyr)
 library(reshape2)
 library(plot.utils)
+#library(lubridate)
+library(utils)
 
 ##------------------------------------------
 
 ##------------------------------------------
 # GLOBAL VARIABLES
 ##------------------------------------------
-working_dir<-"/Users/ssmith/coronavirus/" # don't forget trailing /
+working_dir<-"/Users/stevensmith/Projects/coronavirus/" # don't forget trailing /
 results_dir<-paste0(working_dir,"results/") # assumes diretory exists
 Corona_Cases.fn<-paste0(working_dir,"data/","total-cases-covid-19.csv") 
+Corona_Cases.source_url<-"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+default_theme<-theme_bw()+theme(text = element_text(size = 14)) # fix this
 ##------------------------------------------
 
 ```
@@ -69,41 +71,61 @@ Corona_Cases.fn<-paste0(working_dir,"data/","total-cases-covid-19.csv")
 List of functions
 1. Function 1  
 2. Function 2  
-```{r functions, eval=F}
+```{r functions, eval=T}
 ##------------------------------------------
-## FUNCTION 1
+## FUNCTION: prediction_model
 ##------------------------------------------
-myfunction<-function(x){
-  return(x+1)
+## --- //// ----
+# Takes days vs log10 (case) linear model parameters and a set of days since 100 cases and outputs a dataframe with total number of predicted cases for those days
+## --- //// ----
+prediction_model<-function(m=1,b=0,days=1){
+  total_cases.log<-m*days+b
+  total_cases<-10^total_cases.log
+  prediction<-data.frame(Days_since_100=days,Total_confirmed_cases=total_cases,Total_confirmed_cases.log=total_cases.log)
+  return(prediction)
 }
 ##------------------------------------------
 ```
 
 ### READ IN DATA
-* total number of cases, source: https://ourworldindata.org/coronavirus
+* total number of cases. current source: https://github.com/CSSEGISandData (precvious source https://ourworldindata.org/coronavirus)
 
 ```{r read_in_data, eval=T}
-Corona_Cases<-read.csv(Corona_Cases.fn,header = T,stringsAsFactors = F)
+# Q: do we want to archive previous versions? Maybe an auto git mv? 
+
+##------------------------------------------
+## Download and read in latest data from github
+##------------------------------------------
+download.file(Corona_Cases.source_url,destfile = Corona_Cases.fn)
+Corona_Cases.raw<-read.csv(Corona_Cases.fn,header = T,stringsAsFactors = F)
+
 ```
 
 
 ### PROCESS DATA
-* Rename column headers  
+* Convert to long format  
+* Fix date formatting/convert to numeric date  
 * Log10 transform total # cases  
 
 ```{r process, eval=T}
 
 ##------------------------------------------
-## Rename column headers
+## Convert to long format
 ##------------------------------------------
-#Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases","Year"="Days_Since_x"))
-Corona_Cases<-Corona_Cases %>% rename(replace = c("Total.confirmed.cases.of.COVID.19..cases."="Total_confirmed_cases"))
-library(lubridate)
-#March 25 - they changed from # of days to date format
-Corona_Cases$Date<-as.Date(Corona_Cases$Date,format = "%B %d, %Y")
+#JHU has a gross file format. It's in wide format with each column is the date in MM/DD/YY. So read this in as raw data but trasnform it to be better suited for analysis
+head(Corona_Cases.raw)
+
+Corona_Cases<-melt(Corona_Cases.raw,
+                   id.vars = c("Province.State","Country.Region","Lat","Long"),
+                   variable.name = "Date",
+                   value.name = "Total_confirmed_cases")
+
+##------------------------------------------
+## Fix date formatting, convert to numeric date
+##------------------------------------------
+Corona_Cases$Date<-gsub(Corona_Cases$Date,pattern = "^X",replacement = "0") # leading 0 read in as X
+Corona_Cases$Date<-as.Date(Corona_Cases$Date,format = "%m.%d.%y")
 Corona_Cases$Date.numeric<-as.numeric(Corona_Cases$Date)
-as.Date(Corona_Cases$Date.numeric,origin = Corona_Cases$Date)
-##------------------------------------------
 
 
 ##------------------------------------------
@@ -113,28 +135,67 @@ Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,1
 ##------------------------------------------
 
 
+##------------------------------------------
+## Compute # of days since 100th for US data
+##------------------------------------------
+# TODO: do for all countries
+Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US" & Total_confirmed_cases>0)
+case100_date<-min(Corona_Cases.US[Corona_Cases.US$Total_confirmed_cases>100,"Date.numeric"])
+Corona_Cases.US$Days_since_100<-Corona_Cases.US$Date.numeric-case100_date
+
+# Filter df for 
+Corona_Cases.US.case100<-filter(Corona_Cases.US,Days_since_100>0)
+
+# Preview
+head(Corona_Cases)
+head(Corona_Cases.US)
+
 ```
 ## ANALYSIS
  
-
 ### Q1: What is the trend in total cases?
-A blurb about the approach, some context
+Plot # of cases vs time (US only)
+FUTURE: compare different countries
 ```{r question1, eval=T}
-
 ##------------------------------------------
-## Compute # of days since 100th case
+## Linear model for days since 100 cases vs log10(confirmed cases)
 ##------------------------------------------
 
-plot_data<-filter(Corona_Cases,Code=="USA" & Total_confirmed_cases>0)
-inflection<-min(plot_data[plot_data$Total_confirmed_cases>100,"Date.numeric"])
-plot_data$Days_since_100<-plot_data$Date.numeric-inflection
-
-
-#plot_data<-Corona_Cases[Corona_Cases$Code=="USA" & Corona_Cases$Days_Since_x>0,]
-(model_fit<-lm(formula = Total_confirmed_cases.log~Days_since_100,data =plot_data[plot_data$Days_since_100>0,] ))
+# linear model parameters
+(model_fit<-lm(formula = Total_confirmed_cases.log~Days_since_100,data= Corona_Cases.US.case100 ))
 (slope<-model_fit$coefficients[2])
 (intercept<-model_fit$coefficients[1])
 
+# Correlation coefficient
+cor(x = Corona_Cases.US.case100$Days_since_100,y = Corona_Cases.US.case100$Total_confirmed_cases.log)
+
+
+(total_cases.25.plot<-ggplot(Corona_Cases.US,aes(x=Days_since_100,y=Total_confirmed_cases))+
+  default_theme+
+  geom_point())
+
+(total_cases.25.log.plot<-ggplot(Corona_Cases.US,aes(x=Days_since_100,y=Total_confirmed_cases.log))+
+  geom_abline(slope = slope,intercept = intercept,lty=2)+
+   default_theme+
+  geom_point())
+total_cases.25.log.plot+xlim(c(15,25))
+write_plot(total_cases.25.plot,wd = results_dir)
+write_plot(total_cases.25.log.plot,wd = results_dir)
+
+
+
+```
+### Q2: What is the predicted number of cases?
+
+
+# What is the prediction of COVID-19 based on model thus far?
+Additional questions:
+
+WHy did it take to day 40 to start a log linear trend?
+How long will it be till x number of cases?
+When will the plateu happen?
+Are any effects noticed with social distancing? Delays
+```{r prediction, eval=T}
 # Formula for # of cases by x days
 paste0("log10_total_cases = ",slope,"*days + ",intercept)
 paste0("total_cases = 10^(",slope,"*days + ",intercept,")")
@@ -145,68 +206,26 @@ paste0("5k cases is ",(log(5E5,10)- intercept)/slope," days")
 paste0("1M cases is ",(log(1E6,10)- intercept)/slope," days")
 
 
-today<-max(plot_data$Days_since_100)
-#tomorrow<-today+1
-#tomorrow_plus1<-tomorrow+1
-#tomorrow_plus2<-tomorrow+2
-#tomorrow_plus3<-tomorrow+3
-#next_week<-today+7
-predicted_days<-today+c(1,2,3,7)
+today_num<-max(Corona_Cases.US$Days_since_100)
+predicted_days<-today_num+c(1,2,3,7)
 
-prediction_model<-function(m=1,b=0,days=1){
-  total_cases.log<-m*days+b
-  total_cases<-10^total_cases.log
-  prediction<-data.frame(Days_since_100=days,Total_confirmed_cases=total_cases,Total_confirmed_cases.log=total_cases.log)
-  return(prediction)
-}
+
 #today:
-plot_data[plot_data$Days_since_100==today,]
+Corona_Cases.US[Corona_Cases.US$Days_since_100==(today-1),]
+Corona_Cases.US[Corona_Cases.US$Days_since_100==today,]
 prediction_model(m = slope,b=intercept,days=predicted_days)
-
-cor(x = plot_data[plot_data$Days_since_100>0,"Days_since_100"],y = plot_data[plot_data$Days_since_100>0,"Total_confirmed_cases.log"])
-
-
-(total_cases.25.plot<-ggplot(plot_data,aes(x=Days_since_100,y=Total_confirmed_cases))+
-  default_theme+
-  geom_point())
-
-(total_cases.25.log.plot<-ggplot(plot_data,aes(x=Days_since_100,y=Total_confirmed_cases.log))+
-  geom_abline(slope = slope,intercept = intercept,lty=2)+
-   default_theme+
-  geom_point())
-
-write_plot(total_cases.25.plot,wd = results_dir)
-write_plot(total_cases.25.log.plot,wd = results_dir)
-
-
-
-```
-### What is the predicted number of cases?
-
-
-# What is the prediction of COVID-19 based on model thus far?
-Additional questions:
-
-WHy did it take to day 40 to start a log linear trend?
-How long will it be till x number of cases?
-When will the plateu happen?
-Are any effects noticed with social distancing? Delays
-```{r prediction, eval=F}
-
-plot_data$type<-"Historical"
+Corona_Cases.US$type<-"Historical"
 names(Corona_Cases)
 
-#Corona_Cases_wprediction<-rbind.fill(Corona_Cases,data.frame(Code="USA",type="MAR25_prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
-tmp<-Corona_Cases_wprediction
-Corona_Cases_wprediction<-rbind.fill(plot_data,data.frame(Code="USA",type="MAR26_prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
+Corona_Cases_wprediction<-rbind.fill(Corona_Cases.US,data.frame(Code="USA",type="MAR26_prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
 
-plot_data.prediction<-Corona_Cases_wprediction #filter(Corona_Cases_wprediction,Code=="USA" )
+Corona_Cases.US.prediction<-Corona_Cases_wprediction #filter(Corona_Cases_wprediction,Code=="USA" )
 prediction_values<-prediction_model(m=slope,b=intercept,days = predicted_days)$Total_confirmed_cases
 
 mar26_prediction<-data.frame(type="MAR26_prediction",Days_since_100=predicted_days-7,Total_confirmed_cases.log=log(prediction_values,10),text_display=paste0(c("tomorrow : ","two_days: ","three_days: ","next_week: "),round(prediction_values,digits = 0)))
 mar25_prediction<-data.frame(type="MAR25_prediction",Days_since_100=predicted_days-20,Total_confirmed_cases.log=log(c(56490.42,75400.32,100640.22,319422.18),10),text_display=paste0(c("today's (actual=55231): ","tomorrow: ","two_days: ","6 days: "),round(c(56490.42,75400.32,100640.22,319422.18),digits = 0)))
               
-(predicted.25.plot<-ggplot(plot_data.prediction,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
+(predicted.25.plot<-ggplot(Corona_Cases.US.prediction,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
     geom_abline(slope = slope,intercept = intercept,lty=2)+
   #geom_vline(xintercept = c(key_milestones.days),lty=2)+
   geom_point(size=3)+
@@ -266,3 +285,47 @@ http://rmarkdown.rstudio.com>
 # TODO
 * mkdir the results dir if it doesn't exist
 * make ggplot a dependency for plot.utils?
+* automated way of downloading daily data
+* fix plot_utils, add dataset and documentation
+* Auto git mv the new data?
+
+# Sandbox
+
+```{r eval=F}
+# Store histroical preidctions
+# maybe just store the model parameters, then re-compute for a given model and series of dates!!
+
+# ok..
+
+#datastructure:
+#-date (or ID)
+#-slope
+#-intercept
+
+#re-use function that takes m, b, dates and computes estimates
+
+# assumptions: same linear model.
+
+#latiernative- filter inputdaya set to n-1 days
+
+histoical_model<-data.frame(date=today,m=slope,b=intercept)
+
+
+today_num
+# model for previous y days
+historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
+for(i in c(1,2,3,4,5)){
+day_x<-today_num-i # 1, 2, 3, 4
+day_x_nextweek<-day_x+c(1,2,3,7)
+model_fit_x<-lm(data = filter(Corona_Cases.US.case100,Days_since_100 < day_x),formula = Total_confirmed_cases.log~Days_since_100)
+
+historical_model_predictions<-rbind.fill(historical_model_predictions,merge(filter(Corona_Cases.US.case100,Days_since_100==day_x),data.frame(day_x=day_x,prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek))))
+}
+ggplot(historical_model_predictions)+geom_point(aes(x=Days_since_100,y=Total_confirmed_cases,col=as.factor(day_x)))
+
+# TODO add actual call to plot
+
+reportTimeStamp = format(Sys.time(), "%Y-%m-%d (%a) %X")
+titleStr        = paste("COVID-19 Deaths by Country/Region ", "[", reportTimeStamp, "]", sep="")
+
+```
