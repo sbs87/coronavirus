@@ -211,8 +211,8 @@ predicted_days<-today_num+c(1,2,3,7)
 
 
 #today:
-Corona_Cases.US[Corona_Cases.US$Days_since_100==(today-1),]
-Corona_Cases.US[Corona_Cases.US$Days_since_100==today,]
+Corona_Cases.US[Corona_Cases.US$Days_since_100==(today_num-1),]
+Corona_Cases.US[Corona_Cases.US$Days_since_100==today_num,]
 prediction_model(m = slope,b=intercept,days=predicted_days)
 Corona_Cases.US$type<-"Historical"
 names(Corona_Cases)
@@ -308,20 +308,30 @@ http://rmarkdown.rstudio.com>
 
 #latiernative- filter inputdaya set to n-1 days
 
-histoical_model<-data.frame(date=today,m=slope,b=intercept)
+histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
 
-
-today_num
 # model for previous y days
 historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
-for(i in c(1,2,3,4,5)){
+for(i in c(1,2,3,4,5,6,7,8,9,10)){
+  #i<-1
 day_x<-today_num-i # 1, 2, 3, 4
-day_x_nextweek<-day_x+c(1,2,3,7)
+day_x_nextweek<-day_x+c(1,2,3)
 model_fit_x<-lm(data = filter(Corona_Cases.US.case100,Days_since_100 < day_x),formula = Total_confirmed_cases.log~Days_since_100)
+prediction_day_x_nextweek<-prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek)
+prediction_day_x_nextweek$type<-"Predicted"
+acutal_day_x_nextweek<-filter(Corona_Cases.US,Days_since_100 %in% day_x_nextweek) %>% select(c(Days_since_100,Total_confirmed_cases,Total_confirmed_cases.log))
+acutal_day_x_nextweek$type<-"Historical"
 
-historical_model_predictions<-rbind.fill(historical_model_predictions,merge(filter(Corona_Cases.US.case100,Days_since_100==day_x),data.frame(day_x=day_x,prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek))))
+
+historical_model_predictions.i<-data.frame(day_x=day_x,rbind(acutal_day_x_nextweek,prediction_day_x_nextweek))
+historical_model_predictions<-rbind(historical_model_predictions.i,historical_model_predictions)
 }
-ggplot(historical_model_predictions)+geom_point(aes(x=Days_since_100,y=Total_confirmed_cases,col=as.factor(day_x)))
+historical_model_predictions
+(historical_model_predictions.plot<-ggplot(historical_model_predictions,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
+    geom_point(size=3)+
+    default_theme+
+    theme(legend.position = "bottom")+    
+    scale_color_manual(values = c("Historical"="#377eb8","Predicted"="#e41a1c")))
 
 # TODO add actual call to plot
 
