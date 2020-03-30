@@ -51,7 +51,6 @@ library(tidyverse)
 library(plyr)
 library(reshape2)
 library(plot.utils)
-#library(lubridate)
 library(utils)
 
 ##------------------------------------------
@@ -196,6 +195,14 @@ How long will it be till x number of cases?
 When will the plateu happen?
 Are any effects noticed with social distancing? Delays
 ```{r prediction, eval=T}
+
+##------------------------------------------
+## Prediction and Prediction Accuracy
+##------------------------------------------
+
+# What is the predict # of cases for the next few days?
+# How is the model performing historically?
+
 # Formula for # of cases by x days
 paste0("log10_total_cases = ",slope,"*days + ",intercept)
 paste0("total_cases = 10^(",slope,"*days + ",intercept,")")
@@ -238,6 +245,30 @@ default_theme+
   scale_color_manual(values = c("Historical"="#377eb8","MAR25_prediction"="orange","MAR26_prediction"="#e41a1c")))
   
 write_plot(predicted.25.plot,wd = results_dir)
+
+
+histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
+
+# model for previous y days
+historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
+for(i in c(1,2,3,4,5,6,7,8,9,10)){
+  #i<-1
+day_x<-today_num-i # 1, 2, 3, 4
+day_x_nextweek<-day_x+c(1,2,3)
+model_fit_x<-lm(data = filter(Corona_Cases.US.case100,Days_since_100 < day_x),formula = Total_confirmed_cases.log~Days_since_100)
+prediction_day_x_nextweek<-prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek)
+prediction_day_x_nextweek$type<-"Predicted"
+acutal_day_x_nextweek<-filter(Corona_Cases.US,Days_since_100 %in% day_x_nextweek) %>% select(c(Days_since_100,Total_confirmed_cases,Total_confirmed_cases.log))
+acutal_day_x_nextweek$type<-"Historical"
+historical_model_predictions.i<-data.frame(day_x=day_x,rbind(acutal_day_x_nextweek,prediction_day_x_nextweek))
+historical_model_predictions<-rbind(historical_model_predictions.i,historical_model_predictions)
+}
+historical_model_predictions
+(historical_model_predictions.plot<-ggplot(historical_model_predictions,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
+    geom_point(size=3)+
+    default_theme+
+    theme(legend.position = "bottom")+    
+    scale_color_manual(values = c("Historical"="#377eb8","Predicted"="#e41a1c")))
 
 ```
 
@@ -292,48 +323,7 @@ http://rmarkdown.rstudio.com>
 # Sandbox
 
 ```{r eval=F}
-# Store histroical preidctions
-# maybe just store the model parameters, then re-compute for a given model and series of dates!!
 
-# ok..
-
-#datastructure:
-#-date (or ID)
-#-slope
-#-intercept
-
-#re-use function that takes m, b, dates and computes estimates
-
-# assumptions: same linear model.
-
-#latiernative- filter inputdaya set to n-1 days
-
-histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
-
-# model for previous y days
-historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
-for(i in c(1,2,3,4,5,6,7,8,9,10)){
-  #i<-1
-day_x<-today_num-i # 1, 2, 3, 4
-day_x_nextweek<-day_x+c(1,2,3)
-model_fit_x<-lm(data = filter(Corona_Cases.US.case100,Days_since_100 < day_x),formula = Total_confirmed_cases.log~Days_since_100)
-prediction_day_x_nextweek<-prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek)
-prediction_day_x_nextweek$type<-"Predicted"
-acutal_day_x_nextweek<-filter(Corona_Cases.US,Days_since_100 %in% day_x_nextweek) %>% select(c(Days_since_100,Total_confirmed_cases,Total_confirmed_cases.log))
-acutal_day_x_nextweek$type<-"Historical"
-
-
-historical_model_predictions.i<-data.frame(day_x=day_x,rbind(acutal_day_x_nextweek,prediction_day_x_nextweek))
-historical_model_predictions<-rbind(historical_model_predictions.i,historical_model_predictions)
-}
-historical_model_predictions
-(historical_model_predictions.plot<-ggplot(historical_model_predictions,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
-    geom_point(size=3)+
-    default_theme+
-    theme(legend.position = "bottom")+    
-    scale_color_manual(values = c("Historical"="#377eb8","Predicted"="#e41a1c")))
-
-# TODO add actual call to plot
 
 reportTimeStamp = format(Sys.time(), "%Y-%m-%d (%a) %X")
 titleStr        = paste("COVID-19 Deaths by Country/Region ", "[", reportTimeStamp, "]", sep="")
