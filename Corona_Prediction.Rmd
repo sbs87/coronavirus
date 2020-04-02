@@ -256,7 +256,7 @@ paste0("2.5k cases is ",(log(2.5E5,10) - intercept)/slope," days")
 paste0("5k cases is ",(log(5E5,10)- intercept)/slope," days")
 paste0("1M cases is ",(log(1E6,10)- intercept)/slope," days")
 
-
+head(filter(Corona_Cases.raw,Country.Region=="US"))
 today_num<-max(Corona_Cases.US$Days_since_100)
 predicted_days<-today_num+c(1,2,3,7)
 
