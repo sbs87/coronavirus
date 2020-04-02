@@ -296,7 +296,7 @@ historical_model_predictions<-rbind(historical_model_predictions.i,historical_mo
     theme(legend.position = "bottom")+ 
       geom_abline(slope = slope,intercept =intercept,lty=2)+
     scale_color_manual(values = c("Historical"="#377eb8","Predicted"="#e41a1c")))
-
+write_plot(historical_model_predictions.plot,wd=results_dir)
 ```
 
 
