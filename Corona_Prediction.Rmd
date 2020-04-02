@@ -3,9 +3,9 @@ title: "Corona_Case_Prediction"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
 output:
-  pdf_document:
-    toc: yes
   html_document:
+    toc: yes
+  pdf_document:
     toc: yes
 last_updated: 3/24/2020
 ---
