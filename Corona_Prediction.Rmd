@@ -2,10 +2,12 @@
 title: "Corona_Case_Prediction"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
-last_updated: "3/24/2020"
-output: 
-  html_document: 
+output:
+  pdf_document:
     toc: yes
+  html_document:
+    toc: yes
+last_updated: 3/24/2020
 ---
 
 # The 2019-2020 Coronavirus Pandemic Analysis
@@ -58,7 +60,7 @@ library(utils)
 ##------------------------------------------
 # GLOBAL VARIABLES
 ##------------------------------------------
-working_dir<-"/Users/stevensmith/Projects/coronavirus/" # don't forget trailing /
+working_dir<-"/Users/ssmith/coronavirus/" # don't forget trailing /
 results_dir<-paste0(working_dir,"results/") # assumes diretory exists
 Corona_Cases.fn<-paste0(working_dir,"data/","time_series_covid19_confirmed_global.csv")
 Corona_Cases.US.fn<-paste0(working_dir,"data/time_series_covid19_confirmed_US.csv")
