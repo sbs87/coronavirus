@@ -60,7 +60,8 @@ library(utils)
 ##------------------------------------------
 # GLOBAL VARIABLES
 ##------------------------------------------
-working_dir<-"/Users/ssmith/coronavirus/" # don't forget trailing /
+user_name<-Sys.info()["user"]
+working_dir<-paste0("/Users/",user_name,"/Projects/coronavirus/") # don't forget trailing /
 results_dir<-paste0(working_dir,"results/") # assumes diretory exists
 Corona_Cases.fn<-paste0(working_dir,"data/","time_series_covid19_confirmed_global.csv")
 Corona_Cases.US.fn<-paste0(working_dir,"data/time_series_covid19_confirmed_US.csv")
@@ -292,11 +293,14 @@ historical_model_predictions.i<-data.frame(day_x=day_x,rbind(acutal_day_x_nextwe
 historical_model_predictions<-rbind(historical_model_predictions.i,historical_model_predictions)
 }
 
-(historical_model_predictions.plot<-ggplot(rbind.fill(historical_model_predictions,data.frame(Corona_Cases.US,type="Historical")),aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
+historical_model_predictions.withHx<-rbind.fill(historical_model_predictions,data.frame(Corona_Cases.US,type="Historical"))
+historical_model_predictions.withHx$Total_confirmed_cases.log2<-log(historical_model_predictions.withHx$Total_confirmed_cases,2)
+
+(historical_model_predictions.plot<-ggplot(historical_model_predictions.withHx,aes(x=Days_since_100,y=Total_confirmed_cases.log2,col=type))+
     geom_point(size=3)+
     default_theme+
     theme(legend.position = "bottom")+ 
-      geom_abline(slope = slope,intercept =intercept,lty=2)+
+      #geom_abline(slope = slope,intercept =intercept,lty=2)+
     scale_color_manual(values = c("Historical"="#377eb8","Predicted"="#e41a1c")))
 write_plot(historical_model_predictions.plot,wd=results_dir)
 ```
