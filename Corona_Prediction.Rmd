@@ -190,9 +190,13 @@ head(Corona_Cases.US)
 
 
 #Corona_Cases.QC<-filter(Corona_Cases,Country.Region %in% countries_with_sufficient_data)
-
-ggplot(filter(Corona_Cases.US,Province.State %in% c("Pennsylvania")),aes(x=Days_since_100,y=Total_confirmed_cases,col=City))+geom_line()+geom_point(size=2)+default_theme
-
+filter(Corona_Cases.US,Province.State %in% c("Pennsylvania")) %>% arrange(Days_since_100)
+ggplot(filter(Corona_Cases.US,Province.State %in% c("Pennsylvania")),aes(x=Days_since_100,y=Total_confirmed_cases,col=City))+
+  #geom_line()+
+  geom_point(size=4)+default_theme+
+  geom_line(data=filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & City %in% c("Bucks")) ,col='red')
+  facet_wrap(~Province.State)
+dev.off
 filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
 ```
 ## ANALYSIS
@@ -267,7 +271,6 @@ predicted_days<-today_num+c(1,2,3,7)
 #today:
 Corona_Cases.US[Corona_Cases.US$Days_since_100==(today_num-1),]
 Corona_Cases.US[Corona_Cases.US$Days_since_100==today_num,]
-prediction_model(m = slope,b=intercept,days=predicted_days)
 Corona_Cases.US$type<-"Historical"
 names(Corona_Cases)
 
@@ -296,7 +299,7 @@ historical_model_predictions<-rbind(historical_model_predictions.i,historical_mo
 historical_model_predictions.withHx<-rbind.fill(historical_model_predictions,data.frame(Corona_Cases.US,type="Historical"))
 historical_model_predictions.withHx$Total_confirmed_cases.log2<-log(historical_model_predictions.withHx$Total_confirmed_cases,2)
 
-(historical_model_predictions.plot<-ggplot(historical_model_predictions.withHx,aes(x=Days_since_100,y=Total_confirmed_cases.log2,col=type))+
+(historical_model_predictions.plot<-ggplot(historical_model_predictions.withHx,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
     geom_point(size=3)+
     default_theme+
     theme(legend.position = "bottom")+ 
