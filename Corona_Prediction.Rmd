@@ -63,6 +63,7 @@ library(utils)
 user_name<-Sys.info()["user"]
 working_dir<-paste0("/Users/",user_name,"/Projects/coronavirus/") # don't forget trailing /
 results_dir<-paste0(working_dir,"results/") # assumes diretory exists
+results_dir_custom<-paste0(results_dir,"custom/") # assumes diretory exists
 Corona_Cases.fn<-paste0(working_dir,"data/","time_series_covid19_confirmed_global.csv")
 Corona_Cases.US.fn<-paste0(working_dir,"data/time_series_covid19_confirmed_US.csv")
 Corona_Cases.source_url<-"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
@@ -189,15 +190,31 @@ head(Corona_Cases)
 head(Corona_Cases.US)
 
 
-#Corona_Cases.QC<-filter(Corona_Cases,Country.Region %in% countries_with_sufficient_data)
-filter(Corona_Cases.US,Province.State %in% c("Pennsylvania")) %>% arrange(Days_since_100)
-ggplot(filter(Corona_Cases.US,Province.State %in% c("Pennsylvania")),aes(x=Days_since_100,y=Total_confirmed_cases,col=City))+
-  #geom_line()+
-  geom_point(size=4)+default_theme+
-  geom_line(data=filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & City %in% c("Bucks")) ,col='red')
-  facet_wrap(~Province.State)
-dev.off
+##------------------------------------------
+## Plot confirmed cases per state (custom)
+##------------------------------------------
+
+
+Corona_Cases.US.plotdata<-filter(Corona_Cases.US,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")) 
+
+(Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases.log,col=City))+
+  geom_point(size=4)+
+    geom_line()+
+  default_theme+
+  #facet_wrap(~Province.State,scales = "free_y")
+theme(legend.position = "bottom"))
+
+(Corona_Cases.US.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases,col=City))+
+  geom_point(size=4)+
+    geom_line()+
+  default_theme+
+  facet_wrap(~Province.State,scales = "free_y")+
+theme(legend.position = "none"))
+
 filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
+
+write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
+write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
 ```
 ## ANALYSIS
  
@@ -366,5 +383,10 @@ ggplot(data = Corona_Cases) +
 
 reportTimeStamp = format(Sys.time(), "%Y-%m-%d (%a) %X")
 titleStr        = paste("COVID-19 Deaths by Country/Region ", "[", reportTimeStamp, "]", sep="")
+
+# add projections for Bucks County, Burlington County and Baltimore City , NYC
+
+
+
 
 ```
