@@ -209,7 +209,7 @@ theme(legend.position = "bottom"))
     geom_line()+
   default_theme+
   facet_wrap(~Province.State,scales = "free_y")+
-theme(legend.position = "none"))
+theme(legend.position = "bottom"))
 
 filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
 
