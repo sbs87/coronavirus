@@ -41,6 +41,8 @@ Not applicable - No analysis performed on remote server
 ### SET UP ENVIORNMENT
 Load libraries and set global variables
 ```{r setup, eval=T}
+#timestamp start
+timestamp()
 
 # clear previous enviornment
 rm(list = ls())
@@ -64,10 +66,17 @@ user_name<-Sys.info()["user"]
 working_dir<-paste0("/Users/",user_name,"/Projects/coronavirus/") # don't forget trailing /
 results_dir<-paste0(working_dir,"results/") # assumes diretory exists
 results_dir_custom<-paste0(results_dir,"custom/") # assumes diretory exists
-Corona_Cases.fn<-paste0(working_dir,"data/","time_series_covid19_confirmed_global.csv")
-Corona_Cases.US.fn<-paste0(working_dir,"data/time_series_covid19_confirmed_US.csv")
+
+
 Corona_Cases.source_url<-"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
 Corona_Cases.US.source_url<-"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
+Corona_Deaths.US.source_url<-"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
+Corona_Deaths.source_url<-"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
+
+Corona_Cases.fn<-paste0(working_dir,"data/",basename(Corona_Cases.source_url))
+Corona_Cases.US.fn<-paste0(working_dir,"data/",basename(Corona_Cases.US.source_url))
+Corona_Deaths.fn<-paste0(working_dir,"data/",basename(Corona_Deaths.source_url))
+Corona_Deaths.US.fn<-paste0(working_dir,"data/",basename(Corona_Deaths.US.source_url))
 default_theme<-theme_bw()+theme(text = element_text(size = 14)) # fix this
 ##------------------------------------------
 
@@ -99,7 +108,7 @@ prediction_model<-function(m=1,b=0,days=1){
 ## --- //// ----
 make_long<-function(data_in,variable.name = "Date",
                    value.name = "Total_confirmed_cases",
-                   id.vars=c("Province.State","Country.Region","Lat","Long","City")){
+                   id.vars=c("case_type","Province.State","Country.Region","Lat","Long","City","Population")){
 
 long_data<-melt(data_in,
                 id.vars = id.vars,
@@ -121,14 +130,24 @@ return(long_data)
 ## Download and read in latest data from github
 ##------------------------------------------
 download.file(Corona_Cases.source_url,destfile = Corona_Cases.fn)
-Corona_Cases.raw<-read.csv(Corona_Cases.fn,header = T,stringsAsFactors = F)
+Corona_Totals.raw<-read.csv(Corona_Cases.fn,header = T,stringsAsFactors = F)
 
 download.file(Corona_Cases.US.source_url,destfile = Corona_Cases.US.fn)
-Corona_Cases.US.raw<-read.csv(Corona_Cases.US.fn,header = T,stringsAsFactors = F)
+Corona_Totals.US.raw<-read.csv(Corona_Cases.US.fn,header = T,stringsAsFactors = F)
 
-head(Corona_Cases.US.raw)
-head(Corona_Cases.raw)
+download.file(Corona_Deaths.source_url,destfile = Corona_Deaths.fn)
+Corona_Deaths.raw<-read.csv(Corona_Deaths.fn,header = T,stringsAsFactors = F)
 
+download.file(Corona_Deaths.US.source_url,destfile = Corona_Deaths.US.fn)
+Corona_Deaths.US.raw<-read.csv(Corona_Deaths.US.fn,header = T,stringsAsFactors = F)
+
+#latest date on all data:
+paste("US deaths:",names(Corona_Deaths.US.raw)[ncol(Corona_Deaths.US.raw)])
+paste("US total:",names(Corona_Totals.US.raw)[ncol(Corona_Totals.US.raw)])
+paste("World deaths:",names(Corona_Deaths.raw)[ncol(Corona_Deaths.raw)])
+paste("World total:",names(Corona_Totals.raw)[ncol(Corona_Totals.raw)])
+Corona_Deaths.US.raw[grepl(Corona_Deaths.US.raw$Admin2,pattern = "Bucks"),]
+Corona_Deaths.US.raw[grepl(Corona_Deaths.US.raw$Admin2,pattern = "Baltimore City"),]
 ```
 
 
@@ -140,19 +159,36 @@ head(Corona_Cases.raw)
 ```{r process, eval=T}
 
 ##------------------------------------------
-## Convert to long format
+## Combine death and total data frames
 ##------------------------------------------
-#JHU has a gross file format. It's in wide format with each column is the date in MM/DD/YY. So read this in as raw data but trasnform it to be better suited for analysis
-# Furthermore, the World and US level data is formatted differently, containing different columns, etc. Recitfy this and combine the world-level stats with U.S. level stats. 
+Corona_Totals.raw$case_type<-"total"
+Corona_Totals.US.raw$case_type<-"total"
+Corona_Deaths.raw$case_type<-"death"
+Corona_Deaths.US.raw$case_type<-"death"
 
+# for some reason, Population listed in US death file but not for other data... Weird. When combining, all datasets will have this column, but US deaths is the only useful one.  
+Corona_Totals.US.raw$Population<-"NA" 
+Corona_Totals.raw$Population<-"NA"
+Corona_Deaths.raw$Population<-"NA"
+
+Corona_Cases.raw<-rbind(Corona_Totals.raw,Corona_Deaths.raw)
+Corona_Cases.US.raw<-rbind(Corona_Totals.US.raw,Corona_Deaths.US.raw)
+#TODO: custom utils- setdiff, intersect names... option to output in merging too
+##------------------------------------------
 # prepare raw datasets for eventual combining
+##------------------------------------------
 Corona_Cases.raw$City<-"NA" # US-level data has Cities
 Corona_Cases.US.raw$Country_Region<-"US_state" # To differentiate from World-level stats
-filter(Corona_Cases.raw,Country.Region=="US")
 Corona_Cases.US.raw<-rename(Corona_Cases.US.raw,c("Province_State"="Province.State",
                                                   "Country_Region"="Country.Region",
                                                   "Long_"="Long",
                                                   "Admin2"="City"))
+
+##------------------------------------------
+## Convert to long format
+##------------------------------------------
+#JHU has a gross file format. It's in wide format with each column is the date in MM/DD/YY. So read this in as raw data but trasnform it to be better suited for analysis
+# Furthermore, the World and US level data is formatted differently, containing different columns, etc. Recitfy this and combine the world-level stats with U.S. level stats.
 
 Corona_Cases<-rbind(make_long(select(Corona_Cases.US.raw,-c(UID,iso2,iso3,code3,FIPS,Combined_Key))),
 make_long(Corona_Cases.raw))
@@ -165,7 +201,10 @@ Corona_Cases$Date<-gsub(Corona_Cases$Date,pattern = "^X",replacement = "0") # le
 Corona_Cases$Date<-gsub(Corona_Cases$Date,pattern = "20$",replacement = "2020") # ends in .20 and not 2020
 Corona_Cases$Date<-as.Date(Corona_Cases$Date,format = "%m.%d.%y")
 Corona_Cases$Date.numeric<-as.numeric(Corona_Cases$Date)
-filter(Corona_Cases,Country.Region=="US")
+filter(Corona_Cases,Country.Region=="US") %>% head()
+filter(Corona_Cases,Country.Region=="US_state") %>% head()
+
+table(select(Corona_Cases,c("Country.Region","case_type")))
 ##------------------------------------------
 ## log10 transform total # cases
 ##------------------------------------------
@@ -178,43 +217,18 @@ Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,1
 
 # Find day that 100th case was found for Country/Province. NOTE: Non US countries may have weird provinces. For example, Frane is summairzed at the country level but also had 3 providences. I've only ensured the U.S. case100 works... so the case100_date for U.S. is summarized both for the entire country (regardless of state) and on a per-state level. 
 # TODO: consider city-level summary as well. This data may be sparse
-
-Corona_Cases<-merge(Corona_Cases,ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("Country.Region","Province.State"),summarise,case100_date=min(Date.numeric)))
+unique(Corona_Cases$Country.Region)
+Corona_Cases<-merge(Corona_Cases,ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("case_type","Country.Region","Province.State"),summarise,case100_date=min(Date.numeric)))
 Corona_Cases$Days_since_100<-Corona_Cases$Date.numeric-Corona_Cases$case100_date
 
 # Filter df for US state-wide stats
-Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US_state" & Total_confirmed_cases>0)
-
+# TODO: change to include both death and total
+Corona_Cases.US_state<-filter(Corona_Cases,Country.Region=="US_state" & Total_confirmed_cases>0 & case_type=="total") 
+table(select(Corona_Cases.US_state,c("Province.State","case_type")))
 # Preview
 head(Corona_Cases)
-head(Corona_Cases.US)
+head(Corona_Cases.US_state)
 
-
-##------------------------------------------
-## Plot confirmed cases per state (custom)
-##------------------------------------------
-
-
-Corona_Cases.US.plotdata<-filter(Corona_Cases.US,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")) 
-
-(Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases.log,col=City))+
-  geom_point(size=4)+
-    geom_line()+
-  default_theme+
-  #facet_wrap(~Province.State,scales = "free_y")
-theme(legend.position = "bottom"))
-
-(Corona_Cases.US.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases,col=City))+
-  geom_point(size=4)+
-    geom_line()+
-  default_theme+
-  facet_wrap(~Province.State,scales = "free_y")+
-theme(legend.position = "bottom"))
-
-filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
-
-write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
-write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
 ```
 ## ANALYSIS
  
@@ -242,15 +256,46 @@ cor(x = Corona_Cases.US.case100$Days_since_100,y = Corona_Cases.US.case100$Total
 
 (Corona_Cases.US.plot<-ggplot(Corona_Cases.US,aes(x=Days_since_100,y=Total_confirmed_cases))+
   default_theme+
+    facet_wrap(~case_type,scales = "free_y",ncol=1)+
   geom_point())
 
 (Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US,aes(x=Days_since_100,y=Total_confirmed_cases.log))+
   geom_abline(slope = slope,intercept = intercept,lty=2)+
    default_theme+
+        facet_wrap(~case_type,ncol=1)+
   geom_point())
 
 write_plot(Corona_Cases.US.plot,wd = results_dir)
 write_plot(Corona_Cases.US.log.plot,wd = results_dir)
+
+
+##------------------------------------------
+## Plot confirmed cases per state (custom)
+##------------------------------------------
+timestamp_plot<-timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
+
+Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")) 
+
+(Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases.log,col=City))+
+  geom_point(size=4)+
+    geom_line()+
+  default_theme+
+  #facet_wrap(~case_type,scales = "free_y")+
+    ggtitle(paste("Log10 cases over time,",timestamp_plot))+
+theme(legend.position = "bottom",plot.title = element_text(size=12)))
+
+(Corona_Cases.US.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases,col=City))+
+  geom_point(size=4)+
+    geom_line()+
+  default_theme+
+  facet_wrap(~Province.State,scales = "free_y",ncol=1)+
+        ggtitle(paste("Cases over time,",timestamp_plot))+
+theme(legend.position = "bottom",plot.title = element_text(size=12)))
+
+filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
+
+write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
+write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
 
 ```
 ### Q2: What is the predicted number of cases?
@@ -315,12 +360,14 @@ historical_model_predictions<-rbind(historical_model_predictions.i,historical_mo
 
 historical_model_predictions.withHx<-rbind.fill(historical_model_predictions,data.frame(Corona_Cases.US,type="Historical"))
 historical_model_predictions.withHx$Total_confirmed_cases.log2<-log(historical_model_predictions.withHx$Total_confirmed_cases,2)
-
+#TODO: fix case_type.. are we predicting deaths too?
+#TODO: better analysis of death rate!
 (historical_model_predictions.plot<-ggplot(historical_model_predictions.withHx,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
     geom_point(size=3)+
     default_theme+
     theme(legend.position = "bottom")+ 
       #geom_abline(slope = slope,intercept =intercept,lty=2)+
+    #facet_wrap(~case_type,ncol=1)+
     scale_color_manual(values = c("Historical"="#377eb8","Predicted"="#e41a1c")))
 write_plot(historical_model_predictions.plot,wd=results_dir)
 ```
@@ -356,6 +403,11 @@ write_plot(input_data1.filter.plot,wd=results_dir)
 ##------------------------------------------
 results_dir
 ```
+
+```{r}
+timestamp()
+```
+
 # CONCLUSION
 A concluding remark(s) on the major findings, preferabbly to pointers where the data can be found. 
 
@@ -384,9 +436,6 @@ ggplot(data = Corona_Cases) +
 reportTimeStamp = format(Sys.time(), "%Y-%m-%d (%a) %X")
 titleStr        = paste("COVID-19 Deaths by Country/Region ", "[", reportTimeStamp, "]", sep="")
 
-# add projections for Bucks County, Burlington County and Baltimore City , NYC
-
-
-
+## US - 2 datasets (state level and country level)
 
 ```
