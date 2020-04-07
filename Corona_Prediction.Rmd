@@ -272,9 +272,9 @@ write_plot(Corona_Cases.US.log.plot,wd = results_dir)
 ##------------------------------------------
 ## Plot confirmed cases per state (custom)
 ##------------------------------------------
-timestamp_plot<-timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
 
 Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")) 
+timestamp_plot<-paste("Most recent date for which data available:",max(Corona_Cases.US.plotdata$Date))#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
 
 (Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases.log,col=City))+
   geom_point(size=4)+
