@@ -294,9 +294,18 @@ theme(legend.position = "bottom",plot.title = element_text(size=12)))
 
 filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
 
+
+
+(Corona_Cases.tristate.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Date,y=Total_confirmed_cases,col=City))+
+  geom_point(size=4)+
+    geom_line()+
+  default_theme+
+        ggtitle(paste("MD, PA, NJ cases over time,",timestamp_plot))+
+theme(legend.position = "bottom",plot.title = element_text(size=12)))
+
 write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
 write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
-
+write_plot(Corona_Cases.tristate.plot,wd=results_dir_custom)
 ```
 ### Q2: What is the predicted number of cases?
 
