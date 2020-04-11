@@ -184,33 +184,54 @@ Corona_Cases.US.raw<-rename(Corona_Cases.US.raw,c("Province_State"="Province.Sta
                                                   "Long_"="Long",
                                                   "Admin2"="City"))
 
+
 ##------------------------------------------
 ## Convert to long format
 ##------------------------------------------
 #JHU has a gross file format. It's in wide format with each column is the date in MM/DD/YY. So read this in as raw data but trasnform it to be better suited for analysis
 # Furthermore, the World and US level data is formatted differently, containing different columns, etc. Recitfy this and combine the world-level stats with U.S. level stats.
 
-Corona_Cases<-rbind(make_long(select(Corona_Cases.US.raw,-c(UID,iso2,iso3,code3,FIPS,Combined_Key))),
+Corona_Cases.long<-rbind(make_long(select(Corona_Cases.US.raw,-c(UID,iso2,iso3,code3,FIPS,Combined_Key))),
 make_long(Corona_Cases.raw))
 
 
 ##------------------------------------------
 ## Fix date formatting, convert to numeric date
 ##------------------------------------------
-Corona_Cases$Date<-gsub(Corona_Cases$Date,pattern = "^X",replacement = "0") # leading 0 read in as X
-Corona_Cases$Date<-gsub(Corona_Cases$Date,pattern = "20$",replacement = "2020") # ends in .20 and not 2020
-Corona_Cases$Date<-as.Date(Corona_Cases$Date,format = "%m.%d.%y")
-Corona_Cases$Date.numeric<-as.numeric(Corona_Cases$Date)
-filter(Corona_Cases,Country.Region=="US") %>% head()
-filter(Corona_Cases,Country.Region=="US_state") %>% head()
+Corona_Cases.long$Date<-gsub(Corona_Cases.long$Date,pattern = "^X",replacement = "0") # leading 0 read in as X
+Corona_Cases.long$Date<-gsub(Corona_Cases.long$Date,pattern = "20$",replacement = "2020") # ends in .20 and not 2020
+Corona_Cases.long$Date<-as.Date(Corona_Cases.long$Date,format = "%m.%d.%y")
+Corona_Cases.long$Date.numeric<-as.numeric(Corona_Cases.long$Date)
+filter(Corona_Cases.long,Country.Region=="US") %>% head()
+filter(Corona_Cases.long,Country.Region=="US_state") %>% head()
 
-table(select(Corona_Cases,c("Country.Region","case_type")))
+table(select(Corona_Cases.long,c("Country.Region","case_type")))
+
+
+# Decouple population and lat/long data, refactor to make it more tidy
+metadata_columns<-c("Lat","Long","Population")
+metadata<-unique(select(filter(Corona_Cases.long,case_type=="death"),c("Province.State","Country.Region",all_of(metadata_columns))))
+Corona_Cases.long<-select(Corona_Cases.long,-all_of(metadata_columns))
+
+# Some counties are not summarized on the country level. collapse all but US
+Corona_Cases.long<-rbind.fill(ddply(filter(Corona_Cases.long,!Country.Region=="US_state"),c("case_type","Country.Region","Date","Date.numeric"),summarise,Total_confirmed_cases=sum(Total_confirmed_cases)),filter(Corona_Cases.long,Country.Region=="US_state"))
+
+# Put total case and deaths side-by-side (wide)
+Corona_Cases<-spread(Corona_Cases.long,key = case_type,value = Total_confirmed_cases)
+
+#Compute moratlity rate
+Corona_Cases$mortality_rate<-Corona_Cases$death/Corona_Cases$total
+
+#TMP
+Corona_Cases<-rename(Corona_Cases,c("total"="Total_confirmed_cases","death"="Total_confirmed_deaths"))
+
 ##------------------------------------------
 ## log10 transform total # cases
 ##------------------------------------------
 Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,10)
+Corona_Cases$Total_confirmed_deaths.log<-log(Corona_Cases$Total_confirmed_deaths,10)
 ##------------------------------------------
-
+       
 ##------------------------------------------
 ## Compute # of days since 100th for US data
 ##------------------------------------------
@@ -218,13 +239,14 @@ Corona_Cases$Total_confirmed_cases.log<-log(Corona_Cases$Total_confirmed_cases,1
 # Find day that 100th case was found for Country/Province. NOTE: Non US countries may have weird provinces. For example, Frane is summairzed at the country level but also had 3 providences. I've only ensured the U.S. case100 works... so the case100_date for U.S. is summarized both for the entire country (regardless of state) and on a per-state level. 
 # TODO: consider city-level summary as well. This data may be sparse
 unique(Corona_Cases$Country.Region)
-Corona_Cases<-merge(Corona_Cases,ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("case_type","Country.Region","Province.State"),summarise,case100_date=min(Date.numeric)))
+Corona_Cases<-merge(Corona_Cases,ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("Country.Region"),summarise,case100_date=min(Date.numeric)))
 Corona_Cases$Days_since_100<-Corona_Cases$Date.numeric-Corona_Cases$case100_date
 
 # Filter df for US state-wide stats
-# TODO: change to include both death and total
-Corona_Cases.US_state<-filter(Corona_Cases,Country.Region=="US_state" & Total_confirmed_cases>0 & case_type=="total") 
-table(select(Corona_Cases.US_state,c("Province.State","case_type")))
+Corona_Cases.US_state<-filter(Corona_Cases,Country.Region=="US_state" & Total_confirmed_cases>0 ) 
+table(select(Corona_Cases.US_state,c("Province.State")))
+Corona_Cases.US_state<-merge(Corona_Cases.US_state,ddply(filter(Corona_Cases.US_state,Total_confirmed_cases>100),c("Province.State"),summarise,case100_date_state=min(Date.numeric)))
+Corona_Cases.US_state$Days_since_100_state<-Corona_Cases.US_state$Date.numeric-Corona_Cases.US_state$case100_date_state
 # Preview
 head(Corona_Cases)
 head(Corona_Cases.US_state)
@@ -232,80 +254,244 @@ head(Corona_Cases.US_state)
 ```
 ## ANALYSIS
  
-### Q1: What is the trend in total cases?
-Plot # of cases vs time (US only)
-FUTURE: compare different countries
-```{r question1, eval=T}
-##------------------------------------------
-## Linear model for days since 100 cases vs log10(confirmed cases)
-##------------------------------------------
+### Q1: What is the trend in cases, mortality across geopgraphical regions?
+Plot # of cases vs time 
+* For each geographical set:
+* comparative longitudinal case trend (absolute & log scale)  
+* comparative longitudinal mortality trend  
+* death vs total correlation  
 
-Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US" & Total_confirmed_cases>0)
-Corona_Cases.US.case100<-filter(Corona_Cases.US, Days_since_100>=0)
-# linear model parameters
-(model_fit<-lm(formula = Total_confirmed_cases.log~Days_since_100,data= Corona_Cases.US.case100 ))
+question|dataset|x|y|color|facet|pch|dimentions  
+comparative longitudinal case trend|long|time|log cases|geography|none (case type?)|case_type|[15, 50, 4] geography x (2 scale?) case type    
+comparative longitudinal case trend|long|time|cases|geography|case_type|?|[15, 50, 4] geography x (2+ scale) case type    
+comparative longitudinal mortality trend|wide|time|mortality rate|geography|none|none|[15, 50, 4] geography    
+death vs total correlation|wide|cases|deaths|geography|none|none|[15, 50, 4] geography    
+
+```{r, eval=T}
+# total cases vs time
+# death cases vs time
+# mortality rate vs time
+# death vs mortality
+
+
+  # death vs mortality
+  # total & death case vs time (same plot)
+
+#<question> <x> <y> <colored> <facet> <dataset>
+## trend in case/deaths over time, comapred across regions <time> <log cases> <geography*> <none> <.wide>
+## trend in case/deaths over time, comapred across regions <time> <cases> <geography*> <case_type> <.long>
+## trend in mortality rate over time, comapred across regions <time> <mortality rate> <geography*> <none>
+## how are death/mortality related/correlated? <time> <log cases> <geography*> <none>
+## how are death and case load correlated? <cases> <deaths>
+
+# lm for each?? - > apply lm from each region starting from 100th case. m, b associated with each.
+    # input: geographical regsion, logcase vs day (100th case)
+    # output: m, b for each geographical region ID
+
+
+
+#total/death on same plot-  diffeer by 2 logs, so when plotting log, use pch. when plotting absolute, need to use free scales
+#when plotting death and case on same, melt. 
+
+#CoronaCases - > filter sets (3)
+  #world - choose countries with sufficent data
+
 N<-ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("Country.Region"),summarise,n=length(Country.Region))
-#ddply(filter(Corona_Cases,Total_confirmed_cases>100 & Country.Region %in% N[N$Country.Region>2,"Country.Region"]),c("Country.Region"), summarise,data.frame(lm(formula = Total_confirmed_cases.log~Days_since_100)$coefficients))
+hist(filter(N,n<100)$n)
+arrange(N,-n)
+# Pick top 15 countries with data
+max_colors<-12
+# find way to fix this- China has diff provences. Plot doesnt look right...
+(sufficient_data<-arrange(filter(N,!Country.Region %in% c("US_state", "Diamond Princess")),-n)[1:max_colors,])
+Corona_Cases.world<-filter(Corona_Cases,Country.Region %in% c(sufficient_data$Country.Region))
 
-(slope<-model_fit$coefficients[2])
-(intercept<-model_fit$coefficients[1])
+
+  #us 
+  #    - by state
+Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US" & Total_confirmed_cases>0)
+# summarize 
+#!City %in% c("Unassigned") 
+  #    - specific cities
+#mortality_rate!=Inf & mortality_rate<=1
+Corona_Cases.UScity<-filter(Corona_Cases,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington"))
+
+measure_vars_long<-c("Total_confirmed_cases.log","Total_confirmed_cases","Total_confirmed_deaths","Total_confirmed_deaths.log")
+melt_arg_list<-list(variable.name = "case_type",value.name = "cases",measure.vars = c("Total_confirmed_cases","Total_confirmed_deaths"))
+melt_arg_list$data=NULL
+
+
+melt_arg_list$data=select(Corona_Cases.world,-ends_with(match = "log"))
+Corona_Cases.world.long<-do.call(melt,melt_arg_list)
+melt_arg_list$data=select(Corona_Cases.UScity,-ends_with(match = "log"))
+Corona_Cases.UScity.long<-do.call(melt,melt_arg_list)
+melt_arg_list$data=select(Corona_Cases.US_state,-ends_with(match = "log"))
+Corona_Cases.US_state.long<-do.call(melt,melt_arg_list)
+
+Corona_Cases.world.long$cases.log<-log(Corona_Cases.world.long$cases,10)
+Corona_Cases.US_state.long$cases.log<-log(Corona_Cases.US_state.long$cases,10)
+Corona_Cases.UScity.long$cases.log<-log(Corona_Cases.UScity.long$cases,10)
+
+
+# what is the current death and total case load for US? For world? For states?
+#-absolute
+#-log
+
+# what is mortality rate (US, world)
+#-absolute
+
+#how is death and case correlated? (US, world)
+#-absolute
+
+```
+
+```{r question1, eval=T}
+
+
+#Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US" & Total_confirmed_cases>0)
+#Corona_Cases.US.case100<-filter(Corona_Cases.US, Days_since_100>=0)
+# linear model parameters
+#(model_fit<-lm(formula = Total_confirmed_cases.log~Days_since_100,data= Corona_Cases.US.case100 ))
+
+#(slope<-model_fit$coefficients[2])
+#(intercept<-model_fit$coefficients[1])
 
 # Correlation coefficient
-cor(x = Corona_Cases.US.case100$Days_since_100,y = Corona_Cases.US.case100$Total_confirmed_cases.log)
+#cor(x = Corona_Cases.US.case100$Days_since_100,y = Corona_Cases.US.case100$Total_confirmed_cases.log)
+
+##------------------------------------------
+## Plot World Data
+##------------------------------------------
+# Timestamp for world
+timestamp_plot.world<-paste("Most recent date for which data available:",max(Corona_Cases.world$Date))#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
 
 
-(Corona_Cases.US.plot<-ggplot(Corona_Cases.US,aes(x=Days_since_100,y=Total_confirmed_cases))+
+# Base template for plots
+baseplot.world<-ggplot(data=NULL,aes(x=Days_since_100,col=Country.Region))+
   default_theme+
+  scale_color_brewer(type = "qualitative",palette = "Paired")+
+  ggtitle(paste("Log10 cases over time,",timestamp_plot.world))+
+  theme(legend.position = "bottom",plot.title = element_text(size=12))
+
+
+##/////////////////////////
+### Plot Longitudinal cases
+
+(Corona_Cases.world.long.plot<-baseplot.world+
+    geom_point(data=Corona_Cases.world.long,aes(y=cases))+
+    geom_line(data=Corona_Cases.world.long,aes(y=cases))+
     facet_wrap(~case_type,scales = "free_y",ncol=1)+
-  geom_point())
+    ggtitle(timestamp_plot.world)
+    )
 
-(Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US,aes(x=Days_since_100,y=Total_confirmed_cases.log))+
-  geom_abline(slope = slope,intercept = intercept,lty=2)+
-   default_theme+
-        facet_wrap(~case_type,ncol=1)+
-  geom_point())
+(Corona_Cases.world.loglong.plot<-baseplot.world+
+    geom_point(data=Corona_Cases.world.long,aes(y=cases.log))+
+    geom_line(data=Corona_Cases.world.long,aes(y=cases.log))+
+    facet_wrap(~case_type,scales = "free_y",ncol=1)+
+    ggtitle(timestamp_plot.world))
 
-write_plot(Corona_Cases.US.plot,wd = results_dir)
-write_plot(Corona_Cases.US.log.plot,wd = results_dir)
+##/////////////////////////
+### Plot Longitudinal mortality rate
+
+(Corona_Cases.world.mortality.plot<-baseplot.world+
+    geom_point(data=Corona_Cases.world,aes(y=mortality_rate))+
+    geom_line(data=Corona_Cases.world,aes(y=mortality_rate))+
+    ylim(c(0,0.3))+
+    ggtitle(timestamp_plot.world))
+
+##/////////////////////////
+### Plot death vs total case correlation
+
+(Corona_Cases.world.casecor.plot<-ggplot(Corona_Cases.world,aes(x=Total_confirmed_cases,y=Total_confirmed_deaths,col=Country.Region))+
+  geom_point()+
+  geom_line()+
+  default_theme+
+  scale_color_brewer(type = "qualitative",palette = "Paired")+
+  ggtitle(paste("Log10 cases over time,",timestamp_plot.world))+
+  theme(legend.position = "bottom",plot.title = element_text(size=12))+
+    ggtitle(timestamp_plot.world))
+
+### Write polots
+
+write_plot(Corona_Cases.world.long.plot,wd = results_dir)
+write_plot(Corona_Cases.world.loglong.plot,wd = results_dir)
+write_plot(Corona_Cases.world.mortality.plot,wd = results_dir)
+write_plot(Corona_Cases.world.casecor.plot,wd = results_dir)
 
 
 ##------------------------------------------
-## Plot confirmed cases per state (custom)
-##------------------------------------------
+## Plot US State Data
+##-----------------------------------------
 
-Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")) 
+baseplot.US<-ggplot(data=NULL,aes(x=Days_since_100_state,col=case_type))+
+  default_theme+
+  facet_wrap(~Province.State)+
+  ggtitle(paste("Log10 cases over time,",timestamp_plot.world))
+
+Corona_Cases.US_state.long.plot<-baseplot.US+geom_point(data=Corona_Cases.US_state.long,aes(y=cases.log))
+##------------------------------------------
+## Plot US City Data
+##-----------------------------------------
+
+
+
+Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & 
+                                   City %in% c("Bucks","Baltimore City", "New York","Burlington") &
+                                   Total_confirmed_cases>0) 
 timestamp_plot<-paste("Most recent date for which data available:",max(Corona_Cases.US.plotdata$Date))#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
 
-(Corona_Cases.US.log.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases.log,col=City))+
+city_colors<-c("Bucks"='#beaed4',"Baltimore City"='#386cb0', "New York"='#7fc97f',"Burlington"='#fdc086')
+
+##/////////////////////////
+### Plot death vs total case correlation
+
+(Corona_Cases.city.loglong.plot<-ggplot(melt(Corona_Cases.US.plotdata,measure.vars = c("Total_confirmed_cases.log","Total_confirmed_deaths.log"),variable.name = "case_type",value.name = "cases"),aes(x=Date,y=cases,col=City,pch=case_type))+
   geom_point(size=4)+
     geom_line()+
   default_theme+
-  #facet_wrap(~case_type,scales = "free_y")+
-    ggtitle(paste("Log10 cases over time,",timestamp_plot))+
-theme(legend.position = "bottom",plot.title = element_text(size=12)))
+  #facet_wrap(~case_type)+
+    ggtitle(paste("Log10 total and death cases over time,",timestamp_plot))+
+theme(legend.position = "bottom",plot.title = element_text(size=12))+
+    scale_color_manual(values = city_colors))
 
-(Corona_Cases.US.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=Total_confirmed_cases,col=City))+
+
+(Corona_Cases.city.long.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Date,y=Total_confirmed_cases,col=City))+
   geom_point(size=4)+
-    geom_line()+
+  geom_line()+
   default_theme+
-  facet_wrap(~Province.State,scales = "free_y",ncol=1)+
-        ggtitle(paste("Cases over time,",timestamp_plot))+
-theme(legend.position = "bottom",plot.title = element_text(size=12)))
-
-filter(Corona_Cases.US,Province.State %in% c("Pennsylvania") & Date=="2020-03-30") %>% arrange(Total_confirmed_cases.log)
-
+  facet_grid(~Province.State,scales = "free_y")+
+  ggtitle(paste("MD, PA, NJ total cases over time,",timestamp_plot))+
+  theme(legend.position = "bottom",plot.title = element_text(size=12))+
+  scale_color_manual(values = city_colors))
 
 
-(Corona_Cases.tristate.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Date,y=Total_confirmed_cases,col=City))+
-  geom_point(size=4)+
-    geom_line()+
+(Corona_Cases.city.mortality.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=mortality_rate,col=City))+
+  geom_point(size=3)+
+  geom_line(size=2)+
   default_theme+
-        ggtitle(paste("MD, PA, NJ cases over time,",timestamp_plot))+
-theme(legend.position = "bottom",plot.title = element_text(size=12)))
+  ggtitle(paste("Mortality rate (deaths/total) over time,",timestamp_plot))+
+  theme(legend.position = "bottom",plot.title = element_text(size=12))+
+  scale_color_manual(values = city_colors))
 
-write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
-write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
-write_plot(Corona_Cases.tristate.plot,wd=results_dir_custom)
+
+(Corona_Cases.city.casecor.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Total_confirmed_deaths,y=Total_confirmed_cases,col=City))+
+  geom_point(size=3)+
+  geom_line(size=2)+
+  default_theme+
+  ggtitle(paste("Correlation of death vs total cases,",timestamp_plot))+
+  theme(legend.position = "bottom",plot.title = element_text(size=12))+
+  scale_color_manual(values = city_colors))
+
+
+#write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
+#write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
+#write_plot(Corona_Cases.tristate.plot,wd=results_dir_custom)
+
+
+write_plot(Corona_Cases.city.long.plot,wd = results_dir_custom)
+write_plot(Corona_Cases.city.loglong.plot,wd = results_dir_custom)
+write_plot(Corona_Cases.city.mortality.plot,wd = results_dir_custom)
+write_plot(Corona_Cases.city.casecor.plot,wd = results_dir_custom)
+
 ```
 ### Q2: What is the predicted number of cases?
 
@@ -316,7 +502,7 @@ WHy did it take to day 40 to start a log linear trend?
 How long will it be till x number of cases?
 When will the plateu happen?
 Are any effects noticed with social distancing? Delays
-```{r prediction, eval=T}
+```{r prediction, eval=F}
 
 ##------------------------------------------
 ## Prediction and Prediction Accuracy
@@ -446,5 +632,17 @@ reportTimeStamp = format(Sys.time(), "%Y-%m-%d (%a) %X")
 titleStr        = paste("COVID-19 Deaths by Country/Region ", "[", reportTimeStamp, "]", sep="")
 
 ## US - 2 datasets (state level and country level)
+?spread
 
+#Corona_Cases.wide<-
+Corona_Cases.wide<-spread(select(Corona_Cases,-c(Total_confirmed_cases.log,Population)),key =case_type ,value = Total_confirmed_cases)
+Corona_Cases.wide$mortality_rate<-Corona_Cases.wide$death/Corona_Cases.wide$total
+arrange(filter(Corona_Cases.wide,Country.Region=="US"),Date)
+plot.dat<-filter(Corona_Cases.wide,Country.Region=="US_state" & !City %in% c("Unassigned") & mortality_rate!=Inf & mortality_rate<=1)
+arrange(filter(plot.dat,mortality_rate>1),Date)
+plot.dat[grepl(plot.dat$City,pattern = "New York"),]
+ggplot(filter(plot.dat,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")),aes(x=Date,y=mortality_rate,col=City))+geom_point()+
+  geom_line()
+
+# Some states have 'Unassigned' or otherwrise non cities, which when merged with other data, gets messy. Rm these instances, but keep note. 
 ```
