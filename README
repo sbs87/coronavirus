@@ -1,0 +1,60 @@
+Welcome to the coronavirus wiki!
+
+# Version
+
+_**Updated 4-11-20**_
+
+***
+
+# Author
+Steven Smith, PhD
+sbs@stevenbsmith.net
+
+# Purpose
+1. Analyze, track and trend the COVID-19 outbreak in real-time to 
+2. Make insights, predictions about future, benchmark against other pandemics.
+3. Assess the degree to which social distancing and policy affected the virus outcome  
+
+# Background
+The novel coronavirus originated in China circa December 2019 and spread across the globe within months. Initially, most of the world did not think much of it; the U.S. only saw cases around mid-march 2020. Increasingly, governments and businesses started remote work, quarantine procedures, shelter in place. The U.S. and global economies took a hit; local businesses floundered, people were unemployed. The mortality rate was estimated to be 3%, more for older populations, less for younger. 
+
+Much confusion was and is on-going. Many people were initially skeptical of large-scale shutdowns for a seemingly mild virus. A smaller percentage of the population still largely questions whether shutdowns were needed, or at what cost to the long-term economy this would have. 
+
+People wondered and still wonder when the quarantine will be lifted and life return to normal. 
+ 
+# Modules
+
+## R script
+### Downloads world and US confirmed case, death cases daily 
+`https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/`
+### Track and trend plots
+* Geographical (world, US/state, US/city)
+* Longitudinal confirmed total, death cases & mortality rate
+### Predictions
+Todo
+* World, US, state/city next week based on model
+### Social distancing affect
+Todo
+* Correlate geographical region degree and timing of social distancing policies
+* Implement time delay model (minimize cost function, assess relationship) 
+
+# Issues/TODO
+See issues tracker at https://github.com/sbs87/coronavirus/issues
+
+# Licence
+Copyright 2020 Steven B Smith
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
