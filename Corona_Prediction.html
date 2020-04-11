@@ -231,7 +231,7 @@ This analysis attempts to answer the following questions (more to come): 1. What
 <p>Load libraries and set global variables</p>
 <pre class="r"><code>#timestamp start
 timestamp()</code></pre>
-<pre><code>## ##------ Fri Apr 10 22:51:20 2020 ------##</code></pre>
+<pre><code>## ##------ Fri Apr 10 23:09:16 2020 ------##</code></pre>
 <pre class="r"><code># clear previous enviornment
 rm(list = ls())
 
@@ -925,11 +925,62 @@ head(Corona_Cases)</code></pre>
 <p>Plot # of cases vs time * For each geographical set: * comparative longitudinal case trend (absolute &amp; log scale)<br />
 * comparative longitudinal mortality trend<br />
 * death vs total correlation</p>
-<p>question|dataset|x|y|color|facet|pch|dimentions<br />
-comparative longitudinal case trend|long|time|log cases|geography|none (case type?)|case_type|[15, 50, 4] geography x (2 scale?) case type<br />
-comparative longitudinal case trend|long|time|cases|geography|case_type|?|[15, 50, 4] geography x (2+ scale) case type<br />
-comparative longitudinal mortality trend|wide|time|mortality rate|geography|none|none|[15, 50, 4] geography<br />
-death vs total correlation|wide|cases|deaths|geography|none|none|[15, 50, 4] geography</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">question</th>
+<th>dataset</th>
+<th align="left">x</th>
+<th align="left">y</th>
+<th align="left">color</th>
+<th align="left">facet</th>
+<th align="left">pch</th>
+<th align="left">dimentions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">comparative_longitudinal_case_trend</td>
+<td>long tim</td>
+<td align="left">e lo</td>
+<td align="left">g_c</td>
+<td align="left">ases ge</td>
+<td align="left">ography no</td>
+<td align="left">ne (case typ</td>
+<td align="left">e?) case_type [15, 50, 4] geography x (2 scale?) case type</td>
+</tr>
+<tr class="even">
+<td align="left">comparative longitudinal case trend|</td>
+<td>long|tim</td>
+<td align="left">e|ca</td>
+<td align="left">ses</td>
+<td align="left">|geogra</td>
+<td align="left">phy|case_t</td>
+<td align="left">ype|?|[15, 5</td>
+<td align="left">0, 4] geography x (2+ scale) case type</td>
+</tr>
+<tr class="odd">
+<td align="left">comparative longitudinal mortality t</td>
+<td>rend|wid</td>
+<td align="left">e|ti</td>
+<td align="left">me|</td>
+<td align="left">mortali</td>
+<td align="left">ty rate|ge</td>
+<td align="left">ography|none</td>
+<td align="left">|none|[15, 50, 4] geography</td>
+</tr>
+<tr class="even">
+<td align="left">death vs total correlation|wide|case</td>
+<td>s|deaths</td>
+<td align="left">|geo</td>
+<td align="left">gra</td>
+<td align="left">phy|non</td>
+<td align="left">e|none|[15</td>
+<td align="left">, 50, 4] geo</td>
+<td align="left">graphy</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code># total cases vs time
 # death cases vs time
 # mortality rate vs time
@@ -1390,7 +1441,7 @@ write_plot(input_data1.filter.plot,wd=results_dir)
 ##------------------------------------------
 results_dir</code></pre>
 <pre class="r"><code>timestamp()</code></pre>
-<pre><code>## ##------ Fri Apr 10 22:51:52 2020 ------##</code></pre>
+<pre><code>## ##------ Fri Apr 10 23:09:51 2020 ------##</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>CONCLUSION</h1>

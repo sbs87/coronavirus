@@ -261,8 +261,9 @@ Plot # of cases vs time
 * comparative longitudinal mortality trend  
 * death vs total correlation  
 
-question|dataset|x|y|color|facet|pch|dimentions  
-comparative longitudinal case trend|long|time|log cases|geography|none (case type?)|case_type|[15, 50, 4] geography x (2 scale?) case type    
+question                            dataset x   y  color  facet     pch         dimentions  
+----------------------------------- ------- --- -- ------ --------- ----------  --------------------------------------------   
+comparative_longitudinal_case_trend long time log_cases geography none (case type?) case_type [15, 50, 4] geography x (2 scale?) case type    
 comparative longitudinal case trend|long|time|cases|geography|case_type|?|[15, 50, 4] geography x (2+ scale) case type    
 comparative longitudinal mortality trend|wide|time|mortality rate|geography|none|none|[15, 50, 4] geography    
 death vs total correlation|wide|cases|deaths|geography|none|none|[15, 50, 4] geography    
