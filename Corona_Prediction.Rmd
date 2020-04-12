@@ -118,7 +118,23 @@ return(long_data)
   
 }
 ##------------------------------------------
+
+## THIS WILL BE IN UTILS AT SOME POINT
+name_overlaps<-function(df1,df2){
+i<-intersect(names(df1),
+names(df2))
+sd1<-setdiff(names(df1),
+names(df2))
+sd2<-setdiff(names(df2),names(df1))
+cat("intersection:\n",paste(i,"\n"))
+cat("in df1 but not df2:\n",paste(sd1,"\n"))
+cat("in df2 but not df1:\n",paste(sd2,"\n"))
+return(list("int"=i,"sd_1_2"=sd1,"sd_2_1"=sd2))
+}
+
 ```
+
+
 
 ### READ IN DATA
 * total number of cases. current source: https://github.com/CSSEGISandData (precvious source https://ourworldindata.org/coronavirus)
@@ -626,24 +642,22 @@ http://rmarkdown.rstudio.com>
 ```{r eval=F}
 ##TODO:
 # Geographical heatmap!
-ggplot(data = Corona_Cases) +
-    geom_sf()
+install.packages("maps")
+library(maps)
+library
+mi_counties <- map_data("county", "pennsylvania") %>% 
+  select(lon = long, lat, group, id = subregion)
+head(mi_counties)
 
-reportTimeStamp = format(Sys.time(), "%Y-%m-%d (%a) %X")
-titleStr        = paste("COVID-19 Deaths by Country/Region ", "[", reportTimeStamp, "]", sep="")
+ggplot(mi_counties, aes(lon, lat)) + 
+  geom_point(size = .25, show.legend = FALSE) +
+  coord_quickmap()
+mi_counties$cases<-1:2226
+name_overlaps(metadata,Corona_Cases.US_state)
 
-## US - 2 datasets (state level and country level)
-?spread
+tmp<-merge(Corona_Cases.US_state,metadata)
+ggplot(filter(tmp,Province.State=="Pennsylvania"), aes(Long, Lat, group = as.factor(City))) +
+  geom_polygon(aes(fill = Total_confirmed_cases), colour = "grey50") + 
+  coord_quickmap()
 
-#Corona_Cases.wide<-
-Corona_Cases.wide<-spread(select(Corona_Cases,-c(Total_confirmed_cases.log,Population)),key =case_type ,value = Total_confirmed_cases)
-Corona_Cases.wide$mortality_rate<-Corona_Cases.wide$death/Corona_Cases.wide$total
-arrange(filter(Corona_Cases.wide,Country.Region=="US"),Date)
-plot.dat<-filter(Corona_Cases.wide,Country.Region=="US_state" & !City %in% c("Unassigned") & mortality_rate!=Inf & mortality_rate<=1)
-arrange(filter(plot.dat,mortality_rate>1),Date)
-plot.dat[grepl(plot.dat$City,pattern = "New York"),]
-ggplot(filter(plot.dat,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington")),aes(x=Date,y=mortality_rate,col=City))+geom_point()+
-  geom_line()
-
-# Some states have 'Unassigned' or otherwrise non cities, which when merged with other data, gets messy. Rm these instances, but keep note. 
 ```
