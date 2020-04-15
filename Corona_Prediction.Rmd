@@ -660,6 +660,6 @@ ggplot(filter(tmp,Province.State=="Pennsylvania"), aes(Long, Lat, group = as.fac
   geom_polygon(aes(fill = Total_confirmed_cases), colour = "grey50") + 
   coord_quickmap()
 
-#TODO test todo in R script
+# TODO test todo in R script
 
 ```
