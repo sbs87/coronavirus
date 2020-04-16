@@ -1,39 +1,51 @@
 ---
-title: "Corona_Case_Prediction"
+title: "Corona_Analysis"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     toc: yes
-last_updated: 3/24/2020
+  pdf_document:
+    toc: yes
 ---
 
 # The 2019-2020 Coronavirus Pandemic Analysis
+Contact: [Smith Research](https://stevenbsmith.net) 
+
 ## BACKGROUND & APPROACH
 I wanted to track and trend the coronavirus outbreak on my own curiosity. There are some interesting questions that may fall out of this, as it is a very historic moment, including scientifically and analytically (we have a large amount of data being shared across the globe, analyzed in real-time). The world has come to a halt because of it.  
 This analysis attempts to answer the following questions (more to come):
+
+
 1. What does the trend of the pandemic look like to date?  
 2. What are future case predictions based on historical model?
-3. What interesting quirks or patterns emerge? 
+3. What interesting quirks or patterns emerge?  
+
 
 
 ASSUMPTIONS & LIMITATIONS: 
 * This data is limited by the source. I realized early on that depending on source there were conflicting # of cases. Originally I was using JHU data... but this was always 'ahead' of the Our World In Data. I noticed that JHU's website was buggy- you clicked on the U.S. stats but it didn't reflect the U.S.. So I changed data sources to be more consistent with what is presented in the media (and Our World In Data has more extensive plots I can compare my own to). An interesting aside might be why the discrepancy? Was I missing something?  
-* Defintiions are important as is the idea that multiple varibales accumulate in things like total cases (more testing for example).  
+* Defintiions are important as is the idea that multiple varibales accumulate in things like total cases (more testing for example). 
 
-SOURCE RAW DATA: https://ourworldindata.org/coronavirus
-INPUT DATA LOCATION: github (https://github.com/sbs87coronavirus/data)
-OUTPUT DATA LOCATIOn: github (https://github.com/sbs87coronavirus/results)
+SOURCE RAW DATA: 
+* https://ourworldindata.org/coronavirus  
+* https://github.com/CSSEGISandData/COVID-19/   
+* <mobility>  
+
+INPUT DATA LOCATION: github (https://github.com/sbs87/coronavirus/tree/master/data)  
+
+OUTPUT DATA LOCATIOn: github (https://github.com/sbs87/coronavirus/tree/master/results)  
+
+
+## TIMESTAMP
+Start: `r paste(timestamp())`
 
 ## PRE-ANALYSIS
 The following sections are outside the scope of the 'analysis' but are still needed to prepare everything
 
-### UPSTREAM PROCESSING/ANALYSIS (N/A)
-1. Google Mobility Scraping  
-
-```{bash process_remote_server, eval=F}
+### UPSTREAM PROCESSING/ANALYSIS
+1. Google Mobility Scraping, script available at [get_google_mobility.py](https://github.com/sbs87/coronavirus/blob/master/get_google_mobility.py) 
+```{bash process_remote_server, eval=F,tidy=T}
 # Mobility data has to be extracted from Google PDF reports using a web scraping script (python , written by Peter Simone, https://github.com/petersim1/MIT_COVID19)
 
 # See get_google_mobility.py for local script 
@@ -47,7 +59,7 @@ python3 get_google_mobility.py
 
 ### SET UP ENVIORNMENT
 Load libraries and set global variables
-```{r setup, eval=T}
+```{r setup, eval=T,collapse=T,tidy=T}
 #timestamp start
 timestamp()
 
@@ -57,12 +69,13 @@ rm(list = ls())
 ##------------------------------------------
 ## LIBRARIES
 ##------------------------------------------
-library(ggplot2)
-library(tidyverse)
 library(plyr)
+library(tidyverse)
+library(ggplot2)
 library(reshape2)
 library(plot.utils)
 library(utils)
+library(knitr)
 
 ##------------------------------------------
 
@@ -90,8 +103,14 @@ default_theme<-theme_bw()+theme(text = element_text(size = 14)) # fix this
 ```
 ### FUNCTIONS
 List of functions
-1. Function 1  
-2. Function 2  
+
+function_name | description
+------------- | -----------
+prediction_model |  outputs case estumate for given log-linear moder parameters slope and intercept 
+make_long        |  converts input data to long format (specialized cases)
+name_overlaps    |  outputs the column names intersection and set diffs of two data frame
+
+
 ```{r functions, eval=T}
 ##------------------------------------------
 ## FUNCTION: prediction_model
@@ -122,7 +141,7 @@ long_data<-melt(data_in,
                 variable.name=variable.name,
                 value.name=value.name)
 return(long_data)
-  
+
 }
 ##------------------------------------------
 
@@ -146,7 +165,7 @@ return(list("int"=i,"sd_1_2"=sd1,"sd_2_1"=sd2))
 ### READ IN DATA
 * total number of cases. current source: https://github.com/CSSEGISandData (precvious source https://ourworldindata.org/coronavirus)
 
-```{r read_in_data, eval=T}
+```{r read_in_data, eval=T,tidy=T}
 # Q: do we want to archive previous versions? Maybe an auto git mv? 
 
 ##------------------------------------------
@@ -169,8 +188,6 @@ paste("US deaths:",names(Corona_Deaths.US.raw)[ncol(Corona_Deaths.US.raw)])
 paste("US total:",names(Corona_Totals.US.raw)[ncol(Corona_Totals.US.raw)])
 paste("World deaths:",names(Corona_Deaths.raw)[ncol(Corona_Deaths.raw)])
 paste("World total:",names(Corona_Totals.raw)[ncol(Corona_Totals.raw)])
-Corona_Deaths.US.raw[grepl(Corona_Deaths.US.raw$Admin2,pattern = "Bucks"),]
-Corona_Deaths.US.raw[grepl(Corona_Deaths.US.raw$Admin2,pattern = "Baltimore City"),]
 ```
 
 
@@ -202,7 +219,8 @@ Corona_Cases.US.raw<-rbind(Corona_Totals.US.raw,Corona_Deaths.US.raw)
 ##------------------------------------------
 Corona_Cases.raw$City<-"NA" # US-level data has Cities
 Corona_Cases.US.raw$Country_Region<-"US_state" # To differentiate from World-level stats
-Corona_Cases.US.raw<-rename(Corona_Cases.US.raw,c("Province_State"="Province.State",
+
+Corona_Cases.US.raw<-plyr::rename(Corona_Cases.US.raw,c("Province_State"="Province.State",
                                                   "Country_Region"="Country.Region",
                                                   "Long_"="Long",
                                                   "Admin2"="City"))
@@ -225,10 +243,8 @@ Corona_Cases.long$Date<-gsub(Corona_Cases.long$Date,pattern = "^X",replacement =
 Corona_Cases.long$Date<-gsub(Corona_Cases.long$Date,pattern = "20$",replacement = "2020") # ends in .20 and not 2020
 Corona_Cases.long$Date<-as.Date(Corona_Cases.long$Date,format = "%m.%d.%y")
 Corona_Cases.long$Date.numeric<-as.numeric(Corona_Cases.long$Date)
-filter(Corona_Cases.long,Country.Region=="US") %>% head()
-filter(Corona_Cases.long,Country.Region=="US_state") %>% head()
 
-table(select(Corona_Cases.long,c("Country.Region","case_type")))
+kable(table(select(Corona_Cases.long,c("Country.Region","case_type"))),caption = "Number of death and total case longitudinal datapoints per geographical region")
 
 
 # Decouple population and lat/long data, refactor to make it more tidy
@@ -246,7 +262,7 @@ Corona_Cases<-spread(Corona_Cases.long,key = case_type,value = Total_confirmed_c
 Corona_Cases$mortality_rate<-Corona_Cases$death/Corona_Cases$total
 
 #TMP
-Corona_Cases<-rename(Corona_Cases,c("total"="Total_confirmed_cases","death"="Total_confirmed_deaths"))
+Corona_Cases<-plyr::rename(Corona_Cases,c("total"="Total_confirmed_cases","death"="Total_confirmed_deaths"))
 
 ##------------------------------------------
 ## log10 transform total # cases
@@ -261,32 +277,30 @@ Corona_Cases$Total_confirmed_deaths.log<-log(Corona_Cases$Total_confirmed_deaths
 
 # Find day that 100th case was found for Country/Province. NOTE: Non US countries may have weird provinces. For example, Frane is summairzed at the country level but also had 3 providences. I've only ensured the U.S. case100 works... so the case100_date for U.S. is summarized both for the entire country (regardless of state) and on a per-state level. 
 # TODO: consider city-level summary as well. This data may be sparse
-unique(Corona_Cases$Country.Region)
+
 Corona_Cases<-merge(Corona_Cases,ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("Country.Region"),summarise,case100_date=min(Date.numeric)))
 Corona_Cases$Days_since_100<-Corona_Cases$Date.numeric-Corona_Cases$case100_date
 
 # Filter df for US state-wide stats
 Corona_Cases.US_state<-filter(Corona_Cases,Country.Region=="US_state" & Total_confirmed_cases>0 ) 
-table(select(Corona_Cases.US_state,c("Province.State")))
+kable(table(select(Corona_Cases.US_state,c("Province.State"))),caption = "Number of longitudinal datapoints (total/death) per state")
 Corona_Cases.US_state<-merge(Corona_Cases.US_state,ddply(filter(Corona_Cases.US_state,Total_confirmed_cases>100),c("Province.State"),summarise,case100_date_state=min(Date.numeric)))
 Corona_Cases.US_state$Days_since_100_state<-Corona_Cases.US_state$Date.numeric-Corona_Cases.US_state$case100_date_state
-# Preview
-head(Corona_Cases)
-head(Corona_Cases.US_state)
 
 ```
 ## ANALYSIS
  
 ### Q1: What is the trend in cases, mortality across geopgraphical regions?
-Plot # of cases vs time 
-* For each geographical set:
-* comparative longitudinal case trend (absolute & log scale)  
-* comparative longitudinal mortality trend  
-* death vs total correlation  
+Plot # of cases vs time   
+* For each geographical set:  
+* comparative longitudinal case trend (absolute & log scale)    
+* comparative longitudinal mortality trend    
+* death vs total correlation    
 
-question                            dataset x   y  color  facet     pch         dimentions  
------------------------------------ ------- --- -- ------ --------- ----------  --------------------------------------------   
-comparative_longitudinal_case_trend long time log_cases geography none (case type?) case_type [15, 50, 4] geography x (2 scale?) case type    
+
+question | dataset | x | y | color | facet | pch | dimentions  
+-------- | ------- | - | - | ----- | ----- | --- | ----------   
+comparative_longitudinal_case_trend | long | time | log_cases | geography | none (case type?) | case_type | [15, 50, 4] geography x (2 scale?) case type  
 comparative longitudinal case trend|long|time|cases|geography|case_type|?|[15, 50, 4] geography x (2+ scale) case type    
 comparative longitudinal mortality trend|wide|time|mortality rate|geography|none|none|[15, 50, 4] geography    
 death vs total correlation|wide|cases|deaths|geography|none|none|[15, 50, 4] geography    
@@ -321,12 +335,17 @@ death vs total correlation|wide|cases|deaths|geography|none|none|[15, 50, 4] geo
   #world - choose countries with sufficent data
 
 N<-ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("Country.Region"),summarise,n=length(Country.Region))
-hist(filter(N,n<100)$n)
-arrange(N,-n)
+ggplot(filter(N,n<100),aes(x=n))+
+  geom_histogram()+
+  default_theme+
+  ggtitle("Distribution of number of days with at least 100 confirmed cases for each region")
+
+kable(arrange(N,-n),caption="Sorted number of days with at least 100 confirmed cases")
 # Pick top 15 countries with data
 max_colors<-12
 # find way to fix this- China has diff provences. Plot doesnt look right...
-(sufficient_data<-arrange(filter(N,!Country.Region %in% c("US_state", "Diamond Princess")),-n)[1:max_colors,])
+sufficient_data<-arrange(filter(N,!Country.Region %in% c("US_state", "Diamond Princess")),-n)[1:max_colors,]
+kable(sufficient_data,caption = paste0("Top ",max_colors," countries with sufficient data"))
 Corona_Cases.world<-filter(Corona_Cases,Country.Region %in% c(sufficient_data$Country.Region))
 
 
@@ -650,7 +669,7 @@ mobility<-read.csv("/Users/stevensmith/Projects/MIT_COVID19/mobility.csv",header
 ## Show relationship between mobility and caseload
 ##------------------------------------------
 mobility$County<-gsub(mobility$County,pattern = " County",replacement = "")
-Corona_Cases.US_state.tmp<-merge(Corona_Cases.US_state,rename(mobility,c("State"="Province.State","County"="City")))
+Corona_Cases.US_state.tmp<-merge(Corona_Cases.US_state,plyr::rename(mobility,c("State"="Province.State","County"="City")))
 
 Corona_Cases.US_state.tmp<-merge(metadata,Corona_Cases.US_state.tmp)
 # Needs to happen upsteam, see todos
@@ -675,8 +694,10 @@ plot_data<-filter(plot_data,!is.na(value))
   default_theme+
   ggtitle("Mobility change vs cases"))
 
-ddply(plot_data,c("Province.State"),summarise,cor=cor(y =Total_confirmed_cases.perperson,x=value)) %>% arrange(-abs(cor))
-(plot_data.permobility_summary<-ddply(plot_data,c("Province.State","variable"),summarise,cor=cor(y =Total_confirmed_cases.perperson,x=value),median_change=median(x=value)) %>% arrange(-abs(cor)))
+
+plot_data.permobility_summary<-ddply(plot_data,c("Province.State","variable"),summarise,cor=cor(y =Total_confirmed_cases.perperson,x=value),median_change=median(x=value)) %>% arrange(-abs(cor))
+
+kable(plot_data.permobility_summary,caption = "Ranked per-state mobility correlation with total confirmed cases")
 
 ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(x=Total_confirmed_cases.perperson,fill=variable))+geom_histogram()+
   facet_grid(~Province.State)+
@@ -698,26 +719,47 @@ write_plot(plot_data.permobility_summary.plot,wd = results_dir)
 
 ```
 
+# DELIVERABLE MANIFEST
+The following link to commited documents pushed to github. These are provided as a convienence, but note this is a manual process. The generation of reports, plots and tables is not coupled to the execution of this markdown. 
+## Report
+This report, html & pdf
+
+## Plots
 ```{r}
-timestamp()
+github_root<-"https://github.com/sbs87/coronavirus/blob/master/"
+link<-paste0(github_root,"results/Corona_Cases.world.casecor.plot.png")
 ```
+name | section | name2 | link
+---- | ------- | ----- | ----
+World total & death cases, correlation | <a href="#Q3: What is the effect on social distancing, descreased mobility on case load?">What is the effect on social distancing, descreased mobility on case load?</a><br> | Corona_Cases.world.casecor.plot | [`r paste(link)`](`r paste(link)`)
+
+
+## Tables
 
 # CONCLUSION
-A concluding remark(s) on the major findings, preferabbly to pointers where the data can be found. 
+Overall, the trends of COVID-19 cases is no longer in log-linear phase for world or U.S. (but some regions like MD are still in the log-linear phase). Mortality rate (deaths/confirmed RNA-based cases) is >1%, with a range depending on region. Mobility is not a strong indicator of caseload (U.S. data).
 
-Helps to have a bullet point for each analysis chunk or an answer to each of the above 'questions':
-*  Answer 1. 
-*  Answer 2.  
+See table below for detailed breakdown.
+
+
+Question  | Answer
+------------- | ------------- 
+<a href="#Q3: What is the effect on social distancing, descreased mobility on case load?">What is the effect on social distancing, descreased mobility on case load?</a><br>    | There is not a strong apparent effect on decreased mobility (work, grocery, retail) or increased mobility (at residence, parks) on number of confirmed cases, either as a country (U.S.) or state level. California appears to have one of the best correlations, but this is a mixed bag
+<a href="#Q1: What is the trend in cases, mortality across geopgraphical regions?">What is the trend in cases, mortality across geopgraphical regions?</a><br>         | The confirmed total casees and mortality is overall log-linear for most countries, with a trailing off beginning for most (inlcuding U.S.). On the state level, NY, NJ, PA starting to trail off; MD is still in log-linear phase. Mortality and case load are highly correlated for NY, NJ, PA, MD. The mortality rate flucutates for a given region, but is about 3% overall. 
 
 #END
+End: `r paste(timestamp())`
+
 Cheatsheet:
 http://rmarkdown.rstudio.com>
 # TODO
-* mkdir the results dir if it doesn't exist
-* make ggplot a dependency for plot.utils?
-* automated way of downloading daily data
-* fix plot_utils, add dataset and documentation
-* Auto git mv the new data?
+* mkdir the results dir if it doesn't exist 
+* make ggplot a dependency for plot.utils?  
+* automated way of downloading daily data 
+* fix plot_utils, add dataset and documentation 
+* Auto git mv the new data? 
+
+
 
 # Sandbox
 
@@ -743,4 +785,24 @@ ggplot(filter(tmp,Province.State=="Pennsylvania"), aes(Long, Lat, group = as.fac
   coord_quickmap()
 
 
+
 ```
+
+
+<center>
+![id](/Users/stevensmith/Desktop/header.png)
+<p>https://stevenbsmith.net</p>
+</center>
+
+
+
+<script type="text/javascript">
+  // When the document is fully rendered...
+  $(document).ready(function() {
+    // ...select all header elements...
+    $('h1, h2, h3, h4, h5').each(function() {
+      // ...and add an id to them corresponding to their 'titles'
+      $(this).attr('id', $(this).html());
+    });
+  });
+</script>
