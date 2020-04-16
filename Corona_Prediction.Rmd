@@ -728,11 +728,22 @@ This report, html & pdf
 ```{r}
 github_root<-"https://github.com/sbs87/coronavirus/blob/master/"
 link<-paste0(github_root,"results/Corona_Cases.world.casecor.plot.png")
-```
-name | section | name2 | link
----- | ------- | ----- | ----
-World total & death cases, correlation | <a href="#Q3: What is the effect on social distancing, descreased mobility on case load?">What is the effect on social distancing, descreased mobility on case load?</a><br> | Corona_Cases.world.casecor.plot | [`r paste(link)`](`r paste(link)`)
+section_ref<-'Q3'
+plot_handle<-c("Corona_Cases.world.casecor.plot","Corona_Cases.world.long.plot")
+name<-"World total & death cases, correlation"
+deliverable_manifest<-data.frame(
+  name=c("World total & death cases, correlation",
+         "World total & death cases, longitudinal"),
+  plot_handle=plot_handle,
+  link=paste0(github_root,"results/",plot_handle,".png")
+)
+(tmp<-apply(deliverable_manifest,MARGIN = 1,FUN = function(x) paste(x[1],x[2],x[3],sep=" | ")))
 
+cat(tmp,sep = "\n")#paste(name,plot_handle,link,sep = " | ")
+```
+name | handle | link
+---- | ------ | ----
+`r cat(tmp,sep = "\n")`
 
 ## Tables
 
