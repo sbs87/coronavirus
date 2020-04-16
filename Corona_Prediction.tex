@@ -1,0 +1,2253 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage[unicode=true]{hyperref}
+\hypersetup{
+            pdftitle={Corona\_Case\_Prediction},
+            pdfauthor={Steven Smith, PhD},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+\title{Corona\_Case\_Prediction}
+\author{Steven Smith, PhD}
+\date{3/18/2020}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{The 2019-2020 Coronavirus Pandemic
+Analysis}\label{the-2019-2020-coronavirus-pandemic-analysis}
+
+\subsection{BACKGROUND \& APPROACH}\label{background-approach}
+
+I wanted to track and trend the coronavirus outbreak on my own
+curiosity. There are some interesting questions that may fall out of
+this, as it is a very historic moment, including scientifically and
+analytically (we have a large amount of data being shared across the
+globe, analyzed in real-time). The world has come to a halt because of
+it.\\
+This analysis attempts to answer the following questions (more to come):
+1. What does the trend of the pandemic look like to date?\\
+2. What are future case predictions based on historical model? 3. What
+interesting quirks or patterns emerge?
+
+ASSUMPTIONS \& LIMITATIONS: * This data is limited by the source. I
+realized early on that depending on source there were conflicting \# of
+cases. Originally I was using JHU data\ldots{} but this was always
+`ahead' of the Our World In Data. I noticed that JHU's website was
+buggy- you clicked on the U.S. stats but it didn't reflect the U.S.. So
+I changed data sources to be more consistent with what is presented in
+the media (and Our World In Data has more extensive plots I can compare
+my own to). An interesting aside might be why the discrepancy? Was I
+missing something?\\
+* Defintiions are important as is the idea that multiple varibales
+accumulate in things like total cases (more testing for example).
+
+SOURCE RAW DATA: \url{https://ourworldindata.org/coronavirus} INPUT DATA
+LOCATION: github (\url{https://github.com/sbs87coronavirus/data}) OUTPUT
+DATA LOCATIOn: github
+(\url{https://github.com/sbs87coronavirus/results})
+
+\subsection{PRE-ANALYSIS}\label{pre-analysis}
+
+The following sections are outside the scope of the `analysis' but are
+still needed to prepare everything
+
+\subsubsection{UPSTREAM PROCESSING/ANALYSIS
+(N/A)}\label{upstream-processinganalysis-na}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Google Mobility Scraping
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Mobility data has to be extracted from Google PDF reports using a web scraping script (python , written by Peter Simone, https://github.com/petersim1/MIT_COVID19)}
+
+\CommentTok{# See get_google_mobility.py for local script }
+
+\KeywordTok{python3} \NormalTok{get_google_mobility.py}
+\CommentTok{# writes csv file of mobility data as "mobility.csv"}
+
+\CommentTok{# TODO: customize get_google_mobility.py script, add arguments}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{SET UP ENVIORNMENT}\label{set-up-enviornment}
+
+Load libraries and set global variables
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#timestamp start}
+\KeywordTok{timestamp}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## ##------ Thu Apr 16 00:38:41 2020 ------##
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# clear previous enviornment}
+\KeywordTok{rm}\NormalTok{(}\DataTypeTok{list =} \KeywordTok{ls}\NormalTok{())}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## LIBRARIES}
+\NormalTok{##------------------------------------------}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\KeywordTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+\end{verbatim}
+
+\begin{verbatim}
+## v tibble  3.0.0     v dplyr   0.8.5
+## v tidyr   1.0.2     v stringr 1.4.0
+## v readr   1.3.1     v forcats 0.5.0
+## v purrr   0.3.3
+\end{verbatim}
+
+\begin{verbatim}
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(plyr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## ------------------------------------------------------------------------------
+\end{verbatim}
+
+\begin{verbatim}
+## You have loaded plyr after dplyr - this is likely to cause problems.
+## If you need functions from both plyr and dplyr, please load plyr first, then dplyr:
+## library(plyr); library(dplyr)
+\end{verbatim}
+
+\begin{verbatim}
+## ------------------------------------------------------------------------------
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'plyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:dplyr':
+## 
+##     arrange, count, desc, failwith, id, mutate, rename, summarise,
+##     summarize
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:purrr':
+## 
+##     compact
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(reshape2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'reshape2'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:tidyr':
+## 
+##     smiths
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(plot.utils)}
+\KeywordTok{library}\NormalTok{(utils)}
+
+\NormalTok{##------------------------------------------}
+
+\NormalTok{##------------------------------------------}
+\CommentTok{# GLOBAL VARIABLES}
+\NormalTok{##------------------------------------------}
+\NormalTok{user_name<-}\KeywordTok{Sys.info}\NormalTok{()[}\StringTok{"user"}\NormalTok{]}
+\NormalTok{working_dir<-}\KeywordTok{paste0}\NormalTok{(}\StringTok{"/Users/"}\NormalTok{,user_name,}\StringTok{"/Projects/coronavirus/"}\NormalTok{) }\CommentTok{# don't forget trailing /}
+\NormalTok{results_dir<-}\KeywordTok{paste0}\NormalTok{(working_dir,}\StringTok{"results/"}\NormalTok{) }\CommentTok{# assumes diretory exists}
+\NormalTok{results_dir_custom<-}\KeywordTok{paste0}\NormalTok{(results_dir,}\StringTok{"custom/"}\NormalTok{) }\CommentTok{# assumes diretory exists}
+
+
+\NormalTok{Corona_Cases.source_url<-}\StringTok{"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"}
+\NormalTok{Corona_Cases.US.source_url<-}\StringTok{"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"}
+\NormalTok{Corona_Deaths.US.source_url<-}\StringTok{"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"}
+\NormalTok{Corona_Deaths.source_url<-}\StringTok{"https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"}
+
+\NormalTok{Corona_Cases.fn<-}\KeywordTok{paste0}\NormalTok{(working_dir,}\StringTok{"data/"}\NormalTok{,}\KeywordTok{basename}\NormalTok{(Corona_Cases.source_url))}
+\NormalTok{Corona_Cases.US.fn<-}\KeywordTok{paste0}\NormalTok{(working_dir,}\StringTok{"data/"}\NormalTok{,}\KeywordTok{basename}\NormalTok{(Corona_Cases.US.source_url))}
+\NormalTok{Corona_Deaths.fn<-}\KeywordTok{paste0}\NormalTok{(working_dir,}\StringTok{"data/"}\NormalTok{,}\KeywordTok{basename}\NormalTok{(Corona_Deaths.source_url))}
+\NormalTok{Corona_Deaths.US.fn<-}\KeywordTok{paste0}\NormalTok{(working_dir,}\StringTok{"data/"}\NormalTok{,}\KeywordTok{basename}\NormalTok{(Corona_Deaths.US.source_url))}
+\NormalTok{default_theme<-}\KeywordTok{theme_bw}\NormalTok{()+}\KeywordTok{theme}\NormalTok{(}\DataTypeTok{text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size =} \DecValTok{14}\NormalTok{)) }\CommentTok{# fix this}
+\NormalTok{##------------------------------------------}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{FUNCTIONS}\label{functions}
+
+List of functions 1. Function 1\\
+2. Function 2
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##------------------------------------------}
+\NormalTok{## FUNCTION: prediction_model}
+\NormalTok{##------------------------------------------}
+\NormalTok{## --- //// ----}
+\CommentTok{# Takes days vs log10 (case) linear model parameters and a set of days since 100 cases and outputs a dataframe with total number of predicted cases for those days}
+\NormalTok{## --- //// ----}
+\NormalTok{prediction_model<-function(}\DataTypeTok{m=}\DecValTok{1}\NormalTok{,}\DataTypeTok{b=}\DecValTok{0}\NormalTok{,}\DataTypeTok{days=}\DecValTok{1}\NormalTok{)\{}
+  \NormalTok{total_cases.log<-m*days+b}
+  \NormalTok{total_cases<-}\DecValTok{10}\NormalTok{^total_cases.log}
+  \NormalTok{prediction<-}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{Days_since_100=}\NormalTok{days,}\DataTypeTok{Total_confirmed_cases=}\NormalTok{total_cases,}\DataTypeTok{Total_confirmed_cases.log=}\NormalTok{total_cases.log)}
+  \KeywordTok{return}\NormalTok{(prediction)}
+\NormalTok{\}}
+\NormalTok{##------------------------------------------}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## FUNCTION: make_long}
+\NormalTok{##------------------------------------------}
+\NormalTok{## --- //// ----}
+\CommentTok{# Takes wide-format case data and converts into long format, using date and total cases as variable/values. Also enforces standardization/assumes data struture naming by using fixed variable name, value name, id.vars, }
+\NormalTok{## --- //// ----}
+\NormalTok{make_long<-function(data_in,}\DataTypeTok{variable.name =} \StringTok{"Date"}\NormalTok{,}
+                   \DataTypeTok{value.name =} \StringTok{"Total_confirmed_cases"}\NormalTok{,}
+                   \DataTypeTok{id.vars=}\KeywordTok{c}\NormalTok{(}\StringTok{"case_type"}\NormalTok{,}\StringTok{"Province.State"}\NormalTok{,}\StringTok{"Country.Region"}\NormalTok{,}\StringTok{"Lat"}\NormalTok{,}\StringTok{"Long"}\NormalTok{,}\StringTok{"City"}\NormalTok{,}\StringTok{"Population"}\NormalTok{))\{}
+
+\NormalTok{long_data<-}\KeywordTok{melt}\NormalTok{(data_in,}
+                \DataTypeTok{id.vars =} \NormalTok{id.vars,}
+                \DataTypeTok{variable.name=}\NormalTok{variable.name,}
+                \DataTypeTok{value.name=}\NormalTok{value.name)}
+\KeywordTok{return}\NormalTok{(long_data)}
+  
+\NormalTok{\}}
+\NormalTok{##------------------------------------------}
+
+\NormalTok{## THIS WILL BE IN UTILS AT SOME POINT}
+\NormalTok{name_overlaps<-function(df1,df2)\{}
+\NormalTok{i<-}\KeywordTok{intersect}\NormalTok{(}\KeywordTok{names}\NormalTok{(df1),}
+\KeywordTok{names}\NormalTok{(df2))}
+\NormalTok{sd1<-}\KeywordTok{setdiff}\NormalTok{(}\KeywordTok{names}\NormalTok{(df1),}
+\KeywordTok{names}\NormalTok{(df2))}
+\NormalTok{sd2<-}\KeywordTok{setdiff}\NormalTok{(}\KeywordTok{names}\NormalTok{(df2),}\KeywordTok{names}\NormalTok{(df1))}
+\KeywordTok{cat}\NormalTok{(}\StringTok{"intersection:}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}\KeywordTok{paste}\NormalTok{(i,}\StringTok{"}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{))}
+\KeywordTok{cat}\NormalTok{(}\StringTok{"in df1 but not df2:}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}\KeywordTok{paste}\NormalTok{(sd1,}\StringTok{"}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{))}
+\KeywordTok{cat}\NormalTok{(}\StringTok{"in df2 but not df1:}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}\KeywordTok{paste}\NormalTok{(sd2,}\StringTok{"}\CharTok{\textbackslash{}n}\StringTok{"}\NormalTok{))}
+\KeywordTok{return}\NormalTok{(}\KeywordTok{list}\NormalTok{(}\StringTok{"int"}\NormalTok{=i,}\StringTok{"sd_1_2"}\NormalTok{=sd1,}\StringTok{"sd_2_1"}\NormalTok{=sd2))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{READ IN DATA}\label{read-in-data}
+
+\begin{itemize}
+\tightlist
+\item
+  total number of cases. current source:
+  \url{https://github.com/CSSEGISandData} (precvious source
+  \url{https://ourworldindata.org/coronavirus})
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Q: do we want to archive previous versions? Maybe an auto git mv? }
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## Download and read in latest data from github}
+\NormalTok{##------------------------------------------}
+\KeywordTok{download.file}\NormalTok{(Corona_Cases.source_url,}\DataTypeTok{destfile =} \NormalTok{Corona_Cases.fn)}
+\NormalTok{Corona_Totals.raw<-}\KeywordTok{read.csv}\NormalTok{(Corona_Cases.fn,}\DataTypeTok{header =} \NormalTok{T,}\DataTypeTok{stringsAsFactors =} \NormalTok{F)}
+
+\KeywordTok{download.file}\NormalTok{(Corona_Cases.US.source_url,}\DataTypeTok{destfile =} \NormalTok{Corona_Cases.US.fn)}
+\NormalTok{Corona_Totals.US.raw<-}\KeywordTok{read.csv}\NormalTok{(Corona_Cases.US.fn,}\DataTypeTok{header =} \NormalTok{T,}\DataTypeTok{stringsAsFactors =} \NormalTok{F)}
+
+\KeywordTok{download.file}\NormalTok{(Corona_Deaths.source_url,}\DataTypeTok{destfile =} \NormalTok{Corona_Deaths.fn)}
+\NormalTok{Corona_Deaths.raw<-}\KeywordTok{read.csv}\NormalTok{(Corona_Deaths.fn,}\DataTypeTok{header =} \NormalTok{T,}\DataTypeTok{stringsAsFactors =} \NormalTok{F)}
+
+\KeywordTok{download.file}\NormalTok{(Corona_Deaths.US.source_url,}\DataTypeTok{destfile =} \NormalTok{Corona_Deaths.US.fn)}
+\NormalTok{Corona_Deaths.US.raw<-}\KeywordTok{read.csv}\NormalTok{(Corona_Deaths.US.fn,}\DataTypeTok{header =} \NormalTok{T,}\DataTypeTok{stringsAsFactors =} \NormalTok{F)}
+
+\CommentTok{#latest date on all data:}
+\KeywordTok{paste}\NormalTok{(}\StringTok{"US deaths:"}\NormalTok{,}\KeywordTok{names}\NormalTok{(Corona_Deaths.US.raw)[}\KeywordTok{ncol}\NormalTok{(Corona_Deaths.US.raw)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "US deaths: X4.15.20"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{paste}\NormalTok{(}\StringTok{"US total:"}\NormalTok{,}\KeywordTok{names}\NormalTok{(Corona_Totals.US.raw)[}\KeywordTok{ncol}\NormalTok{(Corona_Totals.US.raw)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "US total: X4.15.20"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{paste}\NormalTok{(}\StringTok{"World deaths:"}\NormalTok{,}\KeywordTok{names}\NormalTok{(Corona_Deaths.raw)[}\KeywordTok{ncol}\NormalTok{(Corona_Deaths.raw)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "World deaths: X4.15.20"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{paste}\NormalTok{(}\StringTok{"World total:"}\NormalTok{,}\KeywordTok{names}\NormalTok{(Corona_Totals.raw)[}\KeywordTok{ncol}\NormalTok{(Corona_Totals.raw)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "World total: X4.15.20"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Corona_Deaths.US.raw[}\KeywordTok{grepl}\NormalTok{(Corona_Deaths.US.raw$Admin2,}\DataTypeTok{pattern =} \StringTok{"Bucks"}\NormalTok{),]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##           UID iso2 iso3 code3  FIPS Admin2 Province_State Country_Region
+## 2258 84042017   US  USA   840 42017  Bucks   Pennsylvania             US
+##           Lat     Long_            Combined_Key Population X1.22.20 X1.23.20
+## 2258 40.33682 -75.10837 Bucks, Pennsylvania, US     628270        0        0
+##      X1.24.20 X1.25.20 X1.26.20 X1.27.20 X1.28.20 X1.29.20 X1.30.20 X1.31.20
+## 2258        0        0        0        0        0        0        0        0
+##      X2.1.20 X2.2.20 X2.3.20 X2.4.20 X2.5.20 X2.6.20 X2.7.20 X2.8.20 X2.9.20
+## 2258       0       0       0       0       0       0       0       0       0
+##      X2.10.20 X2.11.20 X2.12.20 X2.13.20 X2.14.20 X2.15.20 X2.16.20 X2.17.20
+## 2258        0        0        0        0        0        0        0        0
+##      X2.18.20 X2.19.20 X2.20.20 X2.21.20 X2.22.20 X2.23.20 X2.24.20 X2.25.20
+## 2258        0        0        0        0        0        0        0        0
+##      X2.26.20 X2.27.20 X2.28.20 X2.29.20 X3.1.20 X3.2.20 X3.3.20 X3.4.20
+## 2258        0        0        0        0       0       0       0       0
+##      X3.5.20 X3.6.20 X3.7.20 X3.8.20 X3.9.20 X3.10.20 X3.11.20 X3.12.20
+## 2258       0       0       0       0       0        0        0        0
+##      X3.13.20 X3.14.20 X3.15.20 X3.16.20 X3.17.20 X3.18.20 X3.19.20 X3.20.20
+## 2258        0        0        0        0        0        0        0        0
+##      X3.21.20 X3.22.20 X3.23.20 X3.24.20 X3.25.20 X3.26.20 X3.27.20 X3.28.20
+## 2258        0        0        0        0        0        0        0        0
+##      X3.29.20 X3.30.20 X3.31.20 X4.1.20 X4.2.20 X4.3.20 X4.4.20 X4.5.20 X4.6.20
+## 2258        1        4        3       6       6       8      11      14      17
+##      X4.7.20 X4.8.20 X4.9.20 X4.10.20 X4.11.20 X4.12.20 X4.13.20 X4.14.20
+## 2258      21      24      25       28       32       35       38       41
+##      X4.15.20
+## 2258       52
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Corona_Deaths.US.raw[}\KeywordTok{grepl}\NormalTok{(Corona_Deaths.US.raw$Admin2,}\DataTypeTok{pattern =} \StringTok{"Baltimore City"}\NormalTok{),]}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##           UID iso2 iso3 code3  FIPS         Admin2 Province_State
+## 1222 84024510   US  USA   840 24510 Baltimore City       Maryland
+##      Country_Region      Lat     Long_                 Combined_Key Population
+## 1222             US 39.30212 -76.61151 Baltimore City, Maryland, US     593490
+##      X1.22.20 X1.23.20 X1.24.20 X1.25.20 X1.26.20 X1.27.20 X1.28.20 X1.29.20
+## 1222        0        0        0        0        0        0        0        0
+##      X1.30.20 X1.31.20 X2.1.20 X2.2.20 X2.3.20 X2.4.20 X2.5.20 X2.6.20 X2.7.20
+## 1222        0        0       0       0       0       0       0       0       0
+##      X2.8.20 X2.9.20 X2.10.20 X2.11.20 X2.12.20 X2.13.20 X2.14.20 X2.15.20
+## 1222       0       0        0        0        0        0        0        0
+##      X2.16.20 X2.17.20 X2.18.20 X2.19.20 X2.20.20 X2.21.20 X2.22.20 X2.23.20
+## 1222        0        0        0        0        0        0        0        0
+##      X2.24.20 X2.25.20 X2.26.20 X2.27.20 X2.28.20 X2.29.20 X3.1.20 X3.2.20
+## 1222        0        0        0        0        0        0       0       0
+##      X3.3.20 X3.4.20 X3.5.20 X3.6.20 X3.7.20 X3.8.20 X3.9.20 X3.10.20 X3.11.20
+## 1222       0       0       0       0       0       0       0        0        0
+##      X3.12.20 X3.13.20 X3.14.20 X3.15.20 X3.16.20 X3.17.20 X3.18.20 X3.19.20
+## 1222        0        0        0        0        0        0        0        0
+##      X3.20.20 X3.21.20 X3.22.20 X3.23.20 X3.24.20 X3.25.20 X3.26.20 X3.27.20
+## 1222        0        0        0        0        0        0        0        0
+##      X3.28.20 X3.29.20 X3.30.20 X3.31.20 X4.1.20 X4.2.20 X4.3.20 X4.4.20
+## 1222        0        2        2        2       2       2       4       6
+##      X4.5.20 X4.6.20 X4.7.20 X4.8.20 X4.9.20 X4.10.20 X4.11.20 X4.12.20
+## 1222       7       8       9      10      12       17       22       24
+##      X4.13.20 X4.14.20 X4.15.20
+## 1222       26       29       29
+\end{verbatim}
+
+\subsubsection{PROCESS DATA}\label{process-data}
+
+\begin{itemize}
+\tightlist
+\item
+  Convert to long format\\
+\item
+  Fix date formatting/convert to numeric date\\
+\item
+  Log10 transform total \# cases
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##------------------------------------------}
+\NormalTok{## Combine death and total data frames}
+\NormalTok{##------------------------------------------}
+\NormalTok{Corona_Totals.raw$case_type<-}\StringTok{"total"}
+\NormalTok{Corona_Totals.US.raw$case_type<-}\StringTok{"total"}
+\NormalTok{Corona_Deaths.raw$case_type<-}\StringTok{"death"}
+\NormalTok{Corona_Deaths.US.raw$case_type<-}\StringTok{"death"}
+
+\CommentTok{# for some reason, Population listed in US death file but not for other data... Weird. When combining, all datasets will have this column, but US deaths is the only useful one.  }
+\NormalTok{Corona_Totals.US.raw$Population<-}\StringTok{"NA"} 
+\NormalTok{Corona_Totals.raw$Population<-}\StringTok{"NA"}
+\NormalTok{Corona_Deaths.raw$Population<-}\StringTok{"NA"}
+
+\NormalTok{Corona_Cases.raw<-}\KeywordTok{rbind}\NormalTok{(Corona_Totals.raw,Corona_Deaths.raw)}
+\NormalTok{Corona_Cases.US.raw<-}\KeywordTok{rbind}\NormalTok{(Corona_Totals.US.raw,Corona_Deaths.US.raw)}
+\CommentTok{#TODO: custom utils- setdiff, intersect names... option to output in merging too}
+\NormalTok{##------------------------------------------}
+\CommentTok{# prepare raw datasets for eventual combining}
+\NormalTok{##------------------------------------------}
+\NormalTok{Corona_Cases.raw$City<-}\StringTok{"NA"} \CommentTok{# US-level data has Cities}
+\NormalTok{Corona_Cases.US.raw$Country_Region<-}\StringTok{"US_state"} \CommentTok{# To differentiate from World-level stats}
+\NormalTok{Corona_Cases.US.raw<-}\KeywordTok{rename}\NormalTok{(Corona_Cases.US.raw,}\KeywordTok{c}\NormalTok{(}\StringTok{"Province_State"}\NormalTok{=}\StringTok{"Province.State"}\NormalTok{,}
+                                                  \StringTok{"Country_Region"}\NormalTok{=}\StringTok{"Country.Region"}\NormalTok{,}
+                                                  \StringTok{"Long_"}\NormalTok{=}\StringTok{"Long"}\NormalTok{,}
+                                                  \StringTok{"Admin2"}\NormalTok{=}\StringTok{"City"}\NormalTok{))}
+
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## Convert to long format}
+\NormalTok{##------------------------------------------}
+\CommentTok{#JHU has a gross file format. It's in wide format with each column is the date in MM/DD/YY. So read this in as raw data but trasnform it to be better suited for analysis}
+\CommentTok{# Furthermore, the World and US level data is formatted differently, containing different columns, etc. Recitfy this and combine the world-level stats with U.S. level stats.}
+
+\NormalTok{Corona_Cases.long<-}\KeywordTok{rbind}\NormalTok{(}\KeywordTok{make_long}\NormalTok{(}\KeywordTok{select}\NormalTok{(Corona_Cases.US.raw,-}\KeywordTok{c}\NormalTok{(UID,iso2,iso3,code3,FIPS,Combined_Key))),}
+\KeywordTok{make_long}\NormalTok{(Corona_Cases.raw))}
+
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## Fix date formatting, convert to numeric date}
+\NormalTok{##------------------------------------------}
+\NormalTok{Corona_Cases.long$Date<-}\KeywordTok{gsub}\NormalTok{(Corona_Cases.long$Date,}\DataTypeTok{pattern =} \StringTok{"^X"}\NormalTok{,}\DataTypeTok{replacement =} \StringTok{"0"}\NormalTok{) }\CommentTok{# leading 0 read in as X}
+\NormalTok{Corona_Cases.long$Date<-}\KeywordTok{gsub}\NormalTok{(Corona_Cases.long$Date,}\DataTypeTok{pattern =} \StringTok{"20$"}\NormalTok{,}\DataTypeTok{replacement =} \StringTok{"2020"}\NormalTok{) }\CommentTok{# ends in .20 and not 2020}
+\NormalTok{Corona_Cases.long$Date<-}\KeywordTok{as.Date}\NormalTok{(Corona_Cases.long$Date,}\DataTypeTok{format =} \StringTok{"%m.%d.%y"}\NormalTok{)}
+\NormalTok{Corona_Cases.long$Date.numeric<-}\KeywordTok{as.numeric}\NormalTok{(Corona_Cases.long$Date)}
+\KeywordTok{filter}\NormalTok{(Corona_Cases.long,Country.Region==}\StringTok{"US"}\NormalTok{) %>%}\StringTok{ }\KeywordTok{head}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   case_type Province.State Country.Region     Lat     Long City Population
+## 1     total                            US 37.0902 -95.7129   NA         NA
+## 2     death                            US 37.0902 -95.7129   NA         NA
+## 3     total                            US 37.0902 -95.7129   NA         NA
+## 4     death                            US 37.0902 -95.7129   NA         NA
+## 5     total                            US 37.0902 -95.7129   NA         NA
+## 6     death                            US 37.0902 -95.7129   NA         NA
+##         Date Total_confirmed_cases Date.numeric
+## 1 2020-01-22                     1        18283
+## 2 2020-01-22                     0        18283
+## 3 2020-01-23                     1        18284
+## 4 2020-01-23                     0        18284
+## 5 2020-01-24                     2        18285
+## 6 2020-01-24                     0        18285
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{filter}\NormalTok{(Corona_Cases.long,Country.Region==}\StringTok{"US_state"}\NormalTok{) %>%}\StringTok{ }\KeywordTok{head}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   case_type           Province.State Country.Region       Lat       Long
+## 1     total           American Samoa       US_state -14.27100 -170.13200
+## 2     total                     Guam       US_state  13.44430  144.79370
+## 3     total Northern Mariana Islands       US_state  15.09790  145.67390
+## 4     total              Puerto Rico       US_state  18.22080  -66.59010
+## 5     total           Virgin Islands       US_state  18.33580  -64.89630
+## 6     total                  Alabama       US_state  32.53953  -86.64408
+##      City Population       Date Total_confirmed_cases Date.numeric
+## 1                 NA 2020-01-22                     0        18283
+## 2                 NA 2020-01-22                     0        18283
+## 3                 NA 2020-01-22                     0        18283
+## 4                 NA 2020-01-22                     0        18283
+## 5                 NA 2020-01-22                     0        18283
+## 6 Autauga         NA 2020-01-22                     0        18283
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{table}\NormalTok{(}\KeywordTok{select}\NormalTok{(Corona_Cases.long,}\KeywordTok{c}\NormalTok{(}\StringTok{"Country.Region"}\NormalTok{,}\StringTok{"case_type"}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                   case_type
+## Country.Region                      death  total
+##   Afghanistan                          85     85
+##   Albania                              85     85
+##   Algeria                              85     85
+##   Andorra                              85     85
+##   Angola                               85     85
+##   Antigua and Barbuda                  85     85
+##   Argentina                            85     85
+##   Armenia                              85     85
+##   Australia                           680    680
+##   Austria                              85     85
+##   Azerbaijan                           85     85
+##   Bahamas                              85     85
+##   Bahrain                              85     85
+##   Bangladesh                           85     85
+##   Barbados                             85     85
+##   Belarus                              85     85
+##   Belgium                              85     85
+##   Belize                               85     85
+##   Benin                                85     85
+##   Bhutan                               85     85
+##   Bolivia                              85     85
+##   Bosnia and Herzegovina               85     85
+##   Botswana                             85     85
+##   Brazil                               85     85
+##   Brunei                               85     85
+##   Bulgaria                             85     85
+##   Burkina Faso                         85     85
+##   Burma                                85     85
+##   Burundi                              85     85
+##   Cabo Verde                           85     85
+##   Cambodia                             85     85
+##   Cameroon                             85     85
+##   Canada                             1275   1275
+##   Central African Republic             85     85
+##   Chad                                 85     85
+##   Chile                                85     85
+##   China                              2805   2805
+##   Colombia                             85     85
+##   Congo (Brazzaville)                  85     85
+##   Congo (Kinshasa)                     85     85
+##   Costa Rica                           85     85
+##   Cote d'Ivoire                        85     85
+##   Croatia                              85     85
+##   Cuba                                 85     85
+##   Cyprus                               85     85
+##   Czechia                              85     85
+##   Denmark                             255    255
+##   Diamond Princess                     85     85
+##   Djibouti                             85     85
+##   Dominica                             85     85
+##   Dominican Republic                   85     85
+##   Ecuador                              85     85
+##   Egypt                                85     85
+##   El Salvador                          85     85
+##   Equatorial Guinea                    85     85
+##   Eritrea                              85     85
+##   Estonia                              85     85
+##   Eswatini                             85     85
+##   Ethiopia                             85     85
+##   Fiji                                 85     85
+##   Finland                              85     85
+##   France                              935    935
+##   Gabon                                85     85
+##   Gambia                               85     85
+##   Georgia                              85     85
+##   Germany                              85     85
+##   Ghana                                85     85
+##   Greece                               85     85
+##   Grenada                              85     85
+##   Guatemala                            85     85
+##   Guinea                               85     85
+##   Guinea-Bissau                        85     85
+##   Guyana                               85     85
+##   Haiti                                85     85
+##   Holy See                             85     85
+##   Honduras                             85     85
+##   Hungary                              85     85
+##   Iceland                              85     85
+##   India                                85     85
+##   Indonesia                            85     85
+##   Iran                                 85     85
+##   Iraq                                 85     85
+##   Ireland                              85     85
+##   Israel                               85     85
+##   Italy                                85     85
+##   Jamaica                              85     85
+##   Japan                                85     85
+##   Jordan                               85     85
+##   Kazakhstan                           85     85
+##   Kenya                                85     85
+##   Korea, South                         85     85
+##   Kosovo                               85     85
+##   Kuwait                               85     85
+##   Kyrgyzstan                           85     85
+##   Laos                                 85     85
+##   Latvia                               85     85
+##   Lebanon                              85     85
+##   Liberia                              85     85
+##   Libya                                85     85
+##   Liechtenstein                        85     85
+##   Lithuania                            85     85
+##   Luxembourg                           85     85
+##   Madagascar                           85     85
+##   Malawi                               85     85
+##   Malaysia                             85     85
+##   Maldives                             85     85
+##   Mali                                 85     85
+##   Malta                                85     85
+##   Mauritania                           85     85
+##   Mauritius                            85     85
+##   Mexico                               85     85
+##   Moldova                              85     85
+##   Monaco                               85     85
+##   Mongolia                             85     85
+##   Montenegro                           85     85
+##   Morocco                              85     85
+##   Mozambique                           85     85
+##   MS Zaandam                           85     85
+##   Namibia                              85     85
+##   Nepal                                85     85
+##   Netherlands                         425    425
+##   New Zealand                          85     85
+##   Nicaragua                            85     85
+##   Niger                                85     85
+##   Nigeria                              85     85
+##   North Macedonia                      85     85
+##   Norway                               85     85
+##   Oman                                 85     85
+##   Pakistan                             85     85
+##   Panama                               85     85
+##   Papua New Guinea                     85     85
+##   Paraguay                             85     85
+##   Peru                                 85     85
+##   Philippines                          85     85
+##   Poland                               85     85
+##   Portugal                             85     85
+##   Qatar                                85     85
+##   Romania                              85     85
+##   Russia                               85     85
+##   Rwanda                               85     85
+##   Saint Kitts and Nevis                85     85
+##   Saint Lucia                          85     85
+##   Saint Vincent and the Grenadines     85     85
+##   San Marino                           85     85
+##   Sao Tome and Principe                85     85
+##   Saudi Arabia                         85     85
+##   Senegal                              85     85
+##   Serbia                               85     85
+##   Seychelles                           85     85
+##   Sierra Leone                         85     85
+##   Singapore                            85     85
+##   Slovakia                             85     85
+##   Slovenia                             85     85
+##   Somalia                              85     85
+##   South Africa                         85     85
+##   South Sudan                          85     85
+##   Spain                                85     85
+##   Sri Lanka                            85     85
+##   Sudan                                85     85
+##   Suriname                             85     85
+##   Sweden                               85     85
+##   Switzerland                          85     85
+##   Syria                                85     85
+##   Taiwan*                              85     85
+##   Tanzania                             85     85
+##   Thailand                             85     85
+##   Timor-Leste                          85     85
+##   Togo                                 85     85
+##   Trinidad and Tobago                  85     85
+##   Tunisia                              85     85
+##   Turkey                               85     85
+##   Uganda                               85     85
+##   Ukraine                              85     85
+##   United Arab Emirates                 85     85
+##   United Kingdom                      935    935
+##   Uruguay                              85     85
+##   US                                   85     85
+##   US_state                         276760 276760
+##   Uzbekistan                           85     85
+##   Venezuela                            85     85
+##   Vietnam                              85     85
+##   West Bank and Gaza                   85     85
+##   Western Sahara                       85     85
+##   Yemen                                85     85
+##   Zambia                               85     85
+##   Zimbabwe                             85     85
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Decouple population and lat/long data, refactor to make it more tidy}
+\NormalTok{metadata_columns<-}\KeywordTok{c}\NormalTok{(}\StringTok{"Lat"}\NormalTok{,}\StringTok{"Long"}\NormalTok{,}\StringTok{"Population"}\NormalTok{)}
+\NormalTok{metadata<-}\KeywordTok{unique}\NormalTok{(}\KeywordTok{select}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases.long,case_type==}\StringTok{"death"}\NormalTok{),}\KeywordTok{c}\NormalTok{(}\StringTok{"Country.Region"}\NormalTok{,}\StringTok{"Province.State"}\NormalTok{,}\StringTok{"City"}\NormalTok{,}\KeywordTok{all_of}\NormalTok{(metadata_columns))))}
+\NormalTok{Corona_Cases.long<-}\KeywordTok{select}\NormalTok{(Corona_Cases.long,-}\KeywordTok{all_of}\NormalTok{(metadata_columns))}
+
+\CommentTok{# Some counties are not summarized on the country level. collapse all but US}
+\NormalTok{Corona_Cases.long<-}\KeywordTok{rbind.fill}\NormalTok{(}\KeywordTok{ddply}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases.long,!Country.Region==}\StringTok{"US_state"}\NormalTok{),}\KeywordTok{c}\NormalTok{(}\StringTok{"case_type"}\NormalTok{,}\StringTok{"Country.Region"}\NormalTok{,}\StringTok{"Date"}\NormalTok{,}\StringTok{"Date.numeric"}\NormalTok{),summarise,}\DataTypeTok{Total_confirmed_cases=}\KeywordTok{sum}\NormalTok{(Total_confirmed_cases)),}\KeywordTok{filter}\NormalTok{(Corona_Cases.long,Country.Region==}\StringTok{"US_state"}\NormalTok{))}
+
+\CommentTok{# Put total case and deaths side-by-side (wide)}
+\NormalTok{Corona_Cases<-}\KeywordTok{spread}\NormalTok{(Corona_Cases.long,}\DataTypeTok{key =} \NormalTok{case_type,}\DataTypeTok{value =} \NormalTok{Total_confirmed_cases)}
+
+\CommentTok{#Compute moratlity rate}
+\NormalTok{Corona_Cases$mortality_rate<-Corona_Cases$death/Corona_Cases$total}
+
+\CommentTok{#TMP}
+\NormalTok{Corona_Cases<-}\KeywordTok{rename}\NormalTok{(Corona_Cases,}\KeywordTok{c}\NormalTok{(}\StringTok{"total"}\NormalTok{=}\StringTok{"Total_confirmed_cases"}\NormalTok{,}\StringTok{"death"}\NormalTok{=}\StringTok{"Total_confirmed_deaths"}\NormalTok{))}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## log10 transform total # cases}
+\NormalTok{##------------------------------------------}
+\NormalTok{Corona_Cases$Total_confirmed_cases.log<-}\KeywordTok{log}\NormalTok{(Corona_Cases$Total_confirmed_cases,}\DecValTok{10}\NormalTok{)}
+\NormalTok{Corona_Cases$Total_confirmed_deaths.log<-}\KeywordTok{log}\NormalTok{(Corona_Cases$Total_confirmed_deaths,}\DecValTok{10}\NormalTok{)}
+\NormalTok{##------------------------------------------}
+       
+\NormalTok{##------------------------------------------}
+\NormalTok{## Compute # of days since 100th for US data}
+\NormalTok{##------------------------------------------}
+
+\CommentTok{# Find day that 100th case was found for Country/Province. NOTE: Non US countries may have weird provinces. For example, Frane is summairzed at the country level but also had 3 providences. I've only ensured the U.S. case100 works... so the case100_date for U.S. is summarized both for the entire country (regardless of state) and on a per-state level. }
+\CommentTok{# TODO: consider city-level summary as well. This data may be sparse}
+\KeywordTok{unique}\NormalTok{(Corona_Cases$Country.Region)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   [1] "Afghanistan"                      "Albania"                         
+##   [3] "Algeria"                          "Andorra"                         
+##   [5] "Angola"                           "Antigua and Barbuda"             
+##   [7] "Argentina"                        "Armenia"                         
+##   [9] "Australia"                        "Austria"                         
+##  [11] "Azerbaijan"                       "Bahamas"                         
+##  [13] "Bahrain"                          "Bangladesh"                      
+##  [15] "Barbados"                         "Belarus"                         
+##  [17] "Belgium"                          "Belize"                          
+##  [19] "Benin"                            "Bhutan"                          
+##  [21] "Bolivia"                          "Bosnia and Herzegovina"          
+##  [23] "Botswana"                         "Brazil"                          
+##  [25] "Brunei"                           "Bulgaria"                        
+##  [27] "Burkina Faso"                     "Burma"                           
+##  [29] "Burundi"                          "Cabo Verde"                      
+##  [31] "Cambodia"                         "Cameroon"                        
+##  [33] "Canada"                           "Central African Republic"        
+##  [35] "Chad"                             "Chile"                           
+##  [37] "China"                            "Colombia"                        
+##  [39] "Congo (Brazzaville)"              "Congo (Kinshasa)"                
+##  [41] "Costa Rica"                       "Cote d'Ivoire"                   
+##  [43] "Croatia"                          "Cuba"                            
+##  [45] "Cyprus"                           "Czechia"                         
+##  [47] "Denmark"                          "Diamond Princess"                
+##  [49] "Djibouti"                         "Dominica"                        
+##  [51] "Dominican Republic"               "Ecuador"                         
+##  [53] "Egypt"                            "El Salvador"                     
+##  [55] "Equatorial Guinea"                "Eritrea"                         
+##  [57] "Estonia"                          "Eswatini"                        
+##  [59] "Ethiopia"                         "Fiji"                            
+##  [61] "Finland"                          "France"                          
+##  [63] "Gabon"                            "Gambia"                          
+##  [65] "Georgia"                          "Germany"                         
+##  [67] "Ghana"                            "Greece"                          
+##  [69] "Grenada"                          "Guatemala"                       
+##  [71] "Guinea"                           "Guinea-Bissau"                   
+##  [73] "Guyana"                           "Haiti"                           
+##  [75] "Holy See"                         "Honduras"                        
+##  [77] "Hungary"                          "Iceland"                         
+##  [79] "India"                            "Indonesia"                       
+##  [81] "Iran"                             "Iraq"                            
+##  [83] "Ireland"                          "Israel"                          
+##  [85] "Italy"                            "Jamaica"                         
+##  [87] "Japan"                            "Jordan"                          
+##  [89] "Kazakhstan"                       "Kenya"                           
+##  [91] "Korea, South"                     "Kosovo"                          
+##  [93] "Kuwait"                           "Kyrgyzstan"                      
+##  [95] "Laos"                             "Latvia"                          
+##  [97] "Lebanon"                          "Liberia"                         
+##  [99] "Libya"                            "Liechtenstein"                   
+## [101] "Lithuania"                        "Luxembourg"                      
+## [103] "Madagascar"                       "Malawi"                          
+## [105] "Malaysia"                         "Maldives"                        
+## [107] "Mali"                             "Malta"                           
+## [109] "Mauritania"                       "Mauritius"                       
+## [111] "Mexico"                           "Moldova"                         
+## [113] "Monaco"                           "Mongolia"                        
+## [115] "Montenegro"                       "Morocco"                         
+## [117] "Mozambique"                       "MS Zaandam"                      
+## [119] "Namibia"                          "Nepal"                           
+## [121] "Netherlands"                      "New Zealand"                     
+## [123] "Nicaragua"                        "Niger"                           
+## [125] "Nigeria"                          "North Macedonia"                 
+## [127] "Norway"                           "Oman"                            
+## [129] "Pakistan"                         "Panama"                          
+## [131] "Papua New Guinea"                 "Paraguay"                        
+## [133] "Peru"                             "Philippines"                     
+## [135] "Poland"                           "Portugal"                        
+## [137] "Qatar"                            "Romania"                         
+## [139] "Russia"                           "Rwanda"                          
+## [141] "Saint Kitts and Nevis"            "Saint Lucia"                     
+## [143] "Saint Vincent and the Grenadines" "San Marino"                      
+## [145] "Sao Tome and Principe"            "Saudi Arabia"                    
+## [147] "Senegal"                          "Serbia"                          
+## [149] "Seychelles"                       "Sierra Leone"                    
+## [151] "Singapore"                        "Slovakia"                        
+## [153] "Slovenia"                         "Somalia"                         
+## [155] "South Africa"                     "South Sudan"                     
+## [157] "Spain"                            "Sri Lanka"                       
+## [159] "Sudan"                            "Suriname"                        
+## [161] "Sweden"                           "Switzerland"                     
+## [163] "Syria"                            "Taiwan*"                         
+## [165] "Tanzania"                         "Thailand"                        
+## [167] "Timor-Leste"                      "Togo"                            
+## [169] "Trinidad and Tobago"              "Tunisia"                         
+## [171] "Turkey"                           "Uganda"                          
+## [173] "Ukraine"                          "United Arab Emirates"            
+## [175] "United Kingdom"                   "Uruguay"                         
+## [177] "US"                               "Uzbekistan"                      
+## [179] "Venezuela"                        "Vietnam"                         
+## [181] "West Bank and Gaza"               "Western Sahara"                  
+## [183] "Yemen"                            "Zambia"                          
+## [185] "Zimbabwe"                         "US_state"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Corona_Cases<-}\KeywordTok{merge}\NormalTok{(Corona_Cases,}\KeywordTok{ddply}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases,Total_confirmed_cases>}\DecValTok{100}\NormalTok{),}\KeywordTok{c}\NormalTok{(}\StringTok{"Country.Region"}\NormalTok{),summarise,}\DataTypeTok{case100_date=}\KeywordTok{min}\NormalTok{(Date.numeric)))}
+\NormalTok{Corona_Cases$Days_since_100<-Corona_Cases$Date.numeric-Corona_Cases$case100_date}
+
+\CommentTok{# Filter df for US state-wide stats}
+\NormalTok{Corona_Cases.US_state<-}\KeywordTok{filter}\NormalTok{(Corona_Cases,Country.Region==}\StringTok{"US_state"} \NormalTok{&}\StringTok{ }\NormalTok{Total_confirmed_cases>}\DecValTok{0} \NormalTok{) }
+\KeywordTok{table}\NormalTok{(}\KeywordTok{select}\NormalTok{(Corona_Cases.US_state,}\KeywordTok{c}\NormalTok{(}\StringTok{"Province.State"}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##                  Alabama                   Alaska                  Arizona 
+##                     1519                      214                      461 
+##                 Arkansas               California                 Colorado 
+##                     1429                     1875                     1445 
+##              Connecticut                 Delaware         Diamond Princess 
+##                      268                       99                       30 
+##     District of Columbia                  Florida                  Georgia 
+##                       31                     1781                     3608 
+##           Grand Princess                     Guam                   Hawaii 
+##                       31                       31                      165 
+##                    Idaho                 Illinois                  Indiana 
+##                      680                     1756                     2145 
+##                     Iowa                   Kansas                 Kentucky 
+##                     1624                     1167                     1829 
+##                Louisiana                    Maine                 Maryland 
+##                     1615                      401                      689 
+##            Massachusetts                 Michigan                Minnesota 
+##                      511                     1781                     1492 
+##              Mississippi                 Missouri                  Montana 
+##                     1984                     1782                      593 
+##                 Nebraska                   Nevada            New Hampshire 
+##                      752                      277                      304 
+##               New Jersey               New Mexico                 New York 
+##                      731                      550                     1713 
+##           North Carolina             North Dakota Northern Mariana Islands 
+##                     2236                      574                       29 
+##                     Ohio                 Oklahoma                   Oregon 
+##                     1969                     1303                      820 
+##             Pennsylvania              Puerto Rico             Rhode Island 
+##                     1653                       31                      178 
+##           South Carolina             South Dakota                Tennessee 
+##                     1213                      770                     2099 
+##                    Texas                     Utah                  Vermont 
+##                     3774                      460                      390 
+##           Virgin Islands                 Virginia               Washington 
+##                       31                     2567                     1201 
+##            West Virginia                Wisconsin                  Wyoming 
+##                      768                     1419                      430
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Corona_Cases.US_state<-}\KeywordTok{merge}\NormalTok{(Corona_Cases.US_state,}\KeywordTok{ddply}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases.US_state,Total_confirmed_cases>}\DecValTok{100}\NormalTok{),}\KeywordTok{c}\NormalTok{(}\StringTok{"Province.State"}\NormalTok{),summarise,}\DataTypeTok{case100_date_state=}\KeywordTok{min}\NormalTok{(Date.numeric)))}
+\NormalTok{Corona_Cases.US_state$Days_since_100_state<-Corona_Cases.US_state$Date.numeric-Corona_Cases.US_state$case100_date_state}
+\CommentTok{# Preview}
+\KeywordTok{head}\NormalTok{(Corona_Cases)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Country.Region       Date Date.numeric Province.State City
+## 1    Afghanistan 2020-03-21        18342           <NA> <NA>
+## 2    Afghanistan 2020-03-25        18346           <NA> <NA>
+## 3    Afghanistan 2020-03-27        18348           <NA> <NA>
+## 4    Afghanistan 2020-03-26        18347           <NA> <NA>
+## 5    Afghanistan 2020-03-20        18341           <NA> <NA>
+## 6    Afghanistan 2020-02-21        18313           <NA> <NA>
+##   Total_confirmed_deaths Total_confirmed_cases mortality_rate
+## 1                      0                    24     0.00000000
+## 2                      2                    84     0.02380952
+## 3                      4                   110     0.03636364
+## 4                      4                    94     0.04255319
+## 5                      0                    24     0.00000000
+## 6                      0                     0            NaN
+##   Total_confirmed_cases.log Total_confirmed_deaths.log case100_date
+## 1                  1.380211                       -Inf        18348
+## 2                  1.924279                    0.30103        18348
+## 3                  2.041393                    0.60206        18348
+## 4                  1.973128                    0.60206        18348
+## 5                  1.380211                       -Inf        18348
+## 6                      -Inf                       -Inf        18348
+##   Days_since_100
+## 1             -6
+## 2             -2
+## 3              0
+## 4             -1
+## 5             -7
+## 6            -35
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{head}\NormalTok{(Corona_Cases.US_state)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Province.State Country.Region       Date Date.numeric       City
+## 1        Alabama       US_state 2020-04-03        18355        Lee
+## 2        Alabama       US_state 2020-03-27        18348 Washington
+## 3        Alabama       US_state 2020-04-14        18366     Mobile
+## 4        Alabama       US_state 2020-04-11        18363      Macon
+## 5        Alabama       US_state 2020-03-29        18350 Washington
+## 6        Alabama       US_state 2020-04-03        18355       Bibb
+##   Total_confirmed_deaths Total_confirmed_cases mortality_rate
+## 1                      3                    99     0.03030303
+## 2                      0                     2     0.00000000
+## 3                     17                   509     0.03339882
+## 4                      1                    11     0.09090909
+## 5                      0                     4     0.00000000
+## 6                      0                     4     0.00000000
+##   Total_confirmed_cases.log Total_confirmed_deaths.log case100_date
+## 1                  1.995635                  0.4771213        18331
+## 2                  0.301030                       -Inf        18331
+## 3                  2.706718                  1.2304489        18331
+## 4                  1.041393                  0.0000000        18331
+## 5                  0.602060                       -Inf        18331
+## 6                  0.602060                       -Inf        18331
+##   Days_since_100 case100_date_state Days_since_100_state
+## 1             24              18346                    9
+## 2             17              18346                    2
+## 3             35              18346                   20
+## 4             32              18346                   17
+## 5             19              18346                    4
+## 6             24              18346                    9
+\end{verbatim}
+
+\subsection{ANALYSIS}\label{analysis}
+
+\subsubsection{Q1: What is the trend in cases, mortality across
+geopgraphical
+regions?}\label{q1-what-is-the-trend-in-cases-mortality-across-geopgraphical-regions}
+
+Plot \# of cases vs time * For each geographical set: * comparative
+longitudinal case trend (absolute \& log scale)\\
+* comparative longitudinal mortality trend\\
+* death vs total correlation
+
+\begin{longtable}[]{@{}llllllll@{}}
+\toprule
+question & dataset & x & y & color & facet & pch &
+dimentions\tabularnewline
+\midrule
+\endhead
+comparative\_longitudinal\_case\_trend & long tim & e lo & g\_c & ases
+ge & ography no & ne (case typ & e?) case\_type {[}15, 50, 4{]}
+geography x (2 scale?) case type\tabularnewline
+comparative longitudinal case trend\textbar{} & long\textbar{}tim &
+e\textbar{}ca & ses & \textbar{}geogra & phy\textbar{}case\_t &
+ype\textbar{}?\textbar{}{[}15, 5 & 0, 4{]} geography x (2+ scale) case
+type\tabularnewline
+comparative longitudinal mortality t & rend\textbar{}wid & e\textbar{}ti
+& me\textbar{} & mortali & ty rate\textbar{}ge & ography\textbar{}none &
+\textbar{}none\textbar{}{[}15, 50, 4{]} geography\tabularnewline
+death vs total correlation\textbar{}wide\textbar{}case &
+s\textbar{}deaths & \textbar{}geo & gra & phy\textbar{}non &
+e\textbar{}none\textbar{}{[}15 & , 50, 4{]} geo & graphy\tabularnewline
+\bottomrule
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# total cases vs time}
+\CommentTok{# death cases vs time}
+\CommentTok{# mortality rate vs time}
+\CommentTok{# death vs mortality}
+
+
+  \CommentTok{# death vs mortality}
+  \CommentTok{# total & death case vs time (same plot)}
+
+\CommentTok{#<question> <x> <y> <colored> <facet> <dataset>}
+\NormalTok{## trend in case/deaths over time, comapred across regions <time> <log cases> <geography*> <none> <.wide>}
+\NormalTok{## trend in case/deaths over time, comapred across regions <time> <cases> <geography*> <case_type> <.long>}
+\NormalTok{## trend in mortality rate over time, comapred across regions <time> <mortality rate> <geography*> <none>}
+\NormalTok{## how are death/mortality related/correlated? <time> <log cases> <geography*> <none>}
+\NormalTok{## how are death and case load correlated? <cases> <deaths>}
+
+\CommentTok{# lm for each?? - > apply lm from each region starting from 100th case. m, b associated with each.}
+    \CommentTok{# input: geographical regsion, logcase vs day (100th case)}
+    \CommentTok{# output: m, b for each geographical region ID}
+
+
+
+\CommentTok{#total/death on same plot-  diffeer by 2 logs, so when plotting log, use pch. when plotting absolute, need to use free scales}
+\CommentTok{#when plotting death and case on same, melt. }
+
+\CommentTok{#CoronaCases - > filter sets (3)}
+  \CommentTok{#world - choose countries with sufficent data}
+
+\NormalTok{N<-}\KeywordTok{ddply}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases,Total_confirmed_cases>}\DecValTok{100}\NormalTok{),}\KeywordTok{c}\NormalTok{(}\StringTok{"Country.Region"}\NormalTok{),summarise,}\DataTypeTok{n=}\KeywordTok{length}\NormalTok{(Country.Region))}
+\KeywordTok{hist}\NormalTok{(}\KeywordTok{filter}\NormalTok{(N,n<}\DecValTok{100}\NormalTok{)$n)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/unnamed-chunk-1-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{arrange}\NormalTok{(N,-n)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##             Country.Region    n
+## 1                 US_state 6691
+## 2                    China   85
+## 3         Diamond Princess   66
+## 4             Korea, South   56
+## 5                    Japan   55
+## 6                    Italy   53
+## 7                     Iran   50
+## 8                Singapore   47
+## 9                   France   46
+## 10                 Germany   46
+## 11                   Spain   45
+## 12                      US   44
+## 13             Switzerland   42
+## 14          United Kingdom   42
+## 15                 Belgium   41
+## 16             Netherlands   41
+## 17                  Norway   41
+## 18                  Sweden   41
+## 19                 Austria   39
+## 20                Malaysia   38
+## 21               Australia   37
+## 22                 Bahrain   37
+## 23                 Denmark   37
+## 24                  Canada   36
+## 25                   Qatar   36
+## 26                 Iceland   35
+## 27                  Brazil   34
+## 28                 Czechia   34
+## 29                 Finland   34
+## 30                  Greece   34
+## 31                    Iraq   34
+## 32                  Israel   34
+## 33                Portugal   34
+## 34                Slovenia   34
+## 35                   Egypt   33
+## 36                 Estonia   33
+## 37                   India   33
+## 38                 Ireland   33
+## 39                  Kuwait   33
+## 40             Philippines   33
+## 41                  Poland   33
+## 42                 Romania   33
+## 43            Saudi Arabia   33
+## 44               Indonesia   32
+## 45                 Lebanon   32
+## 46              San Marino   32
+## 47                Thailand   32
+## 48                   Chile   31
+## 49                Pakistan   31
+## 50              Luxembourg   30
+## 51                    Peru   30
+## 52                  Russia   30
+## 53                 Ecuador   29
+## 54                Slovakia   29
+## 55            South Africa   29
+## 56    United Arab Emirates   29
+## 57                 Armenia   28
+## 58                Colombia   28
+## 59                 Croatia   28
+## 60                  Mexico   28
+## 61                  Panama   28
+## 62                  Serbia   28
+## 63                 Taiwan*   28
+## 64                  Turkey   28
+## 65               Argentina   27
+## 66                Bulgaria   27
+## 67                  Latvia   27
+## 68                 Algeria   26
+## 69              Costa Rica   26
+## 70      Dominican Republic   26
+## 71                 Hungary   26
+## 72                 Uruguay   26
+## 73                 Andorra   25
+## 74  Bosnia and Herzegovina   25
+## 75                  Jordan   25
+## 76               Lithuania   25
+## 77                 Morocco   25
+## 78             New Zealand   25
+## 79         North Macedonia   25
+## 80                 Vietnam   25
+## 81                 Albania   24
+## 82                  Cyprus   24
+## 83                   Malta   24
+## 84                 Moldova   24
+## 85                  Brunei   23
+## 86            Burkina Faso   23
+## 87               Sri Lanka   23
+## 88                 Tunisia   23
+## 89                 Ukraine   22
+## 90              Azerbaijan   21
+## 91                   Ghana   21
+## 92              Kazakhstan   21
+## 93                    Oman   21
+## 94                 Senegal   21
+## 95               Venezuela   21
+## 96             Afghanistan   20
+## 97           Cote d'Ivoire   20
+## 98                    Cuba   19
+## 99               Mauritius   19
+## 100             Uzbekistan   19
+## 101               Cambodia   18
+## 102               Cameroon   18
+## 103               Honduras   18
+## 104                Nigeria   18
+## 105     West Bank and Gaza   18
+## 106                Belarus   17
+## 107                Georgia   17
+## 108                Bolivia   16
+## 109                 Kosovo   16
+## 110             Kyrgyzstan   16
+## 111             Montenegro   16
+## 112       Congo (Kinshasa)   15
+## 113                  Kenya   14
+## 114                  Niger   13
+## 115                 Guinea   12
+## 116                 Rwanda   12
+## 117    Trinidad and Tobago   12
+## 118               Paraguay   11
+## 119             Bangladesh   10
+## 120               Djibouti    8
+## 121            El Salvador    7
+## 122              Guatemala    6
+## 123             Madagascar    5
+## 124                   Mali    4
+## 125    Congo (Brazzaville)    1
+## 126                Jamaica    1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Pick top 15 countries with data}
+\NormalTok{max_colors<-}\DecValTok{12}
+\CommentTok{# find way to fix this- China has diff provences. Plot doesnt look right...}
+\NormalTok{(sufficient_data<-}\KeywordTok{arrange}\NormalTok{(}\KeywordTok{filter}\NormalTok{(N,!Country.Region %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"US_state"}\NormalTok{, }\StringTok{"Diamond Princess"}\NormalTok{)),-n)[}\DecValTok{1}\NormalTok{:max_colors,])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Country.Region  n
+## 1           China 85
+## 2    Korea, South 56
+## 3           Japan 55
+## 4           Italy 53
+## 5            Iran 50
+## 6       Singapore 47
+## 7          France 46
+## 8         Germany 46
+## 9           Spain 45
+## 10             US 44
+## 11    Switzerland 42
+## 12 United Kingdom 42
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Corona_Cases.world<-}\KeywordTok{filter}\NormalTok{(Corona_Cases,Country.Region %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(sufficient_data$Country.Region))}
+
+
+  \CommentTok{#us }
+  \CommentTok{#    - by state}
+\NormalTok{Corona_Cases.US<-}\KeywordTok{filter}\NormalTok{(Corona_Cases,Country.Region==}\StringTok{"US"} \NormalTok{&}\StringTok{ }\NormalTok{Total_confirmed_cases>}\DecValTok{0}\NormalTok{)}
+\CommentTok{# summarize }
+\CommentTok{#!City %in% c("Unassigned") }
+  \CommentTok{#    - specific cities}
+\CommentTok{#mortality_rate!=Inf & mortality_rate<=1}
+\NormalTok{Corona_Cases.UScity<-}\KeywordTok{filter}\NormalTok{(Corona_Cases,Province.State %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Pennsylvania"}\NormalTok{,}\StringTok{"Maryland"}\NormalTok{,}\StringTok{"New York"}\NormalTok{,}\StringTok{"New Jersey"}\NormalTok{) &}\StringTok{ }\NormalTok{City %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Bucks"}\NormalTok{,}\StringTok{"Baltimore City"}\NormalTok{, }\StringTok{"New York"}\NormalTok{,}\StringTok{"Burlington"}\NormalTok{))}
+
+\NormalTok{measure_vars_long<-}\KeywordTok{c}\NormalTok{(}\StringTok{"Total_confirmed_cases.log"}\NormalTok{,}\StringTok{"Total_confirmed_cases"}\NormalTok{,}\StringTok{"Total_confirmed_deaths"}\NormalTok{,}\StringTok{"Total_confirmed_deaths.log"}\NormalTok{)}
+\NormalTok{melt_arg_list<-}\KeywordTok{list}\NormalTok{(}\DataTypeTok{variable.name =} \StringTok{"case_type"}\NormalTok{,}\DataTypeTok{value.name =} \StringTok{"cases"}\NormalTok{,}\DataTypeTok{measure.vars =} \KeywordTok{c}\NormalTok{(}\StringTok{"Total_confirmed_cases"}\NormalTok{,}\StringTok{"Total_confirmed_deaths"}\NormalTok{))}
+\NormalTok{melt_arg_list$data=}\OtherTok{NULL}
+
+
+\NormalTok{melt_arg_list$data=}\KeywordTok{select}\NormalTok{(Corona_Cases.world,-}\KeywordTok{ends_with}\NormalTok{(}\DataTypeTok{match =} \StringTok{"log"}\NormalTok{))}
+\NormalTok{Corona_Cases.world.long<-}\KeywordTok{do.call}\NormalTok{(melt,melt_arg_list)}
+\NormalTok{melt_arg_list$data=}\KeywordTok{select}\NormalTok{(Corona_Cases.UScity,-}\KeywordTok{ends_with}\NormalTok{(}\DataTypeTok{match =} \StringTok{"log"}\NormalTok{))}
+\NormalTok{Corona_Cases.UScity.long<-}\KeywordTok{do.call}\NormalTok{(melt,melt_arg_list)}
+\NormalTok{melt_arg_list$data=}\KeywordTok{select}\NormalTok{(Corona_Cases.US_state,-}\KeywordTok{ends_with}\NormalTok{(}\DataTypeTok{match =} \StringTok{"log"}\NormalTok{))}
+\NormalTok{Corona_Cases.US_state.long<-}\KeywordTok{do.call}\NormalTok{(melt,melt_arg_list)}
+
+\NormalTok{Corona_Cases.world.long$cases.log<-}\KeywordTok{log}\NormalTok{(Corona_Cases.world.long$cases,}\DecValTok{10}\NormalTok{)}
+\NormalTok{Corona_Cases.US_state.long$cases.log<-}\KeywordTok{log}\NormalTok{(Corona_Cases.US_state.long$cases,}\DecValTok{10}\NormalTok{)}
+\NormalTok{Corona_Cases.UScity.long$cases.log<-}\KeywordTok{log}\NormalTok{(Corona_Cases.UScity.long$cases,}\DecValTok{10}\NormalTok{)}
+
+
+\CommentTok{# what is the current death and total case load for US? For world? For states?}
+\CommentTok{#-absolute}
+\CommentTok{#-log}
+
+\CommentTok{# what is mortality rate (US, world)}
+\CommentTok{#-absolute}
+
+\CommentTok{#how is death and case correlated? (US, world)}
+\CommentTok{#-absolute}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US" & Total_confirmed_cases>0)}
+\CommentTok{#Corona_Cases.US.case100<-filter(Corona_Cases.US, Days_since_100>=0)}
+\CommentTok{# linear model parameters}
+\CommentTok{#(model_fit<-lm(formula = Total_confirmed_cases.log~Days_since_100,data= Corona_Cases.US.case100 ))}
+
+\CommentTok{#(slope<-model_fit$coefficients[2])}
+\CommentTok{#(intercept<-model_fit$coefficients[1])}
+
+\CommentTok{# Correlation coefficient}
+\CommentTok{#cor(x = Corona_Cases.US.case100$Days_since_100,y = Corona_Cases.US.case100$Total_confirmed_cases.log)}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## Plot World Data}
+\NormalTok{##------------------------------------------}
+\CommentTok{# Timestamp for world}
+\NormalTok{timestamp_plot.world<-}\KeywordTok{paste}\NormalTok{(}\StringTok{"Most recent date for which data available:"}\NormalTok{,}\KeywordTok{max}\NormalTok{(Corona_Cases.world$Date))}\CommentTok{#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")}
+
+
+\CommentTok{# Base template for plots}
+\NormalTok{baseplot.world<-}\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\OtherTok{NULL}\NormalTok{,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Days_since_100,}\DataTypeTok{col=}\NormalTok{Country.Region))+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{scale_color_brewer}\NormalTok{(}\DataTypeTok{type =} \StringTok{"qualitative"}\NormalTok{,}\DataTypeTok{palette =} \StringTok{"Paired"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"Log10 cases over time,"}\NormalTok{,timestamp_plot.world))+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size=}\DecValTok{12}\NormalTok{))}
+
+
+\NormalTok{##/////////////////////////}
+\NormalTok{### Plot Longitudinal cases}
+
+\NormalTok{(Corona_Cases.world.long.plot<-baseplot.world+}
+\StringTok{    }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.world.long,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{cases))+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.world.long,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{cases))+}
+\StringTok{    }\KeywordTok{facet_wrap}\NormalTok{(~case_type,}\DataTypeTok{scales =} \StringTok{"free_y"}\NormalTok{,}\DataTypeTok{ncol=}\DecValTok{1}\NormalTok{)+}
+\StringTok{    }\KeywordTok{ggtitle}\NormalTok{(timestamp_plot.world)}
+    \NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(Corona_Cases.world.loglong.plot<-baseplot.world+}
+\StringTok{    }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.world.long,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{cases.log))+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.world.long,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{cases.log))+}
+\StringTok{    }\KeywordTok{facet_wrap}\NormalTok{(~case_type,}\DataTypeTok{scales =} \StringTok{"free_y"}\NormalTok{,}\DataTypeTok{ncol=}\DecValTok{1}\NormalTok{)+}
+\StringTok{    }\KeywordTok{ggtitle}\NormalTok{(timestamp_plot.world))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##/////////////////////////}
+\NormalTok{### Plot Longitudinal mortality rate}
+
+\NormalTok{(Corona_Cases.world.mortality.plot<-baseplot.world+}
+\StringTok{    }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.world,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{mortality_rate))+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.world,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{mortality_rate))+}
+\StringTok{    }\KeywordTok{ylim}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\FloatTok{0.3}\NormalTok{))+}
+\StringTok{    }\KeywordTok{ggtitle}\NormalTok{(timestamp_plot.world))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 100 rows containing missing values (geom_point).
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Removed 100 row(s) containing missing values (geom_path).
+\end{verbatim}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##/////////////////////////}
+\NormalTok{### Plot death vs total case correlation}
+
+\NormalTok{(Corona_Cases.world.casecor.plot<-}\KeywordTok{ggplot}\NormalTok{(Corona_Cases.world,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Total_confirmed_cases,}\DataTypeTok{y=}\NormalTok{Total_confirmed_deaths,}\DataTypeTok{col=}\NormalTok{Country.Region))+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{()+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{()+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{scale_color_brewer}\NormalTok{(}\DataTypeTok{type =} \StringTok{"qualitative"}\NormalTok{,}\DataTypeTok{palette =} \StringTok{"Paired"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"Log10 cases over time,"}\NormalTok{,timestamp_plot.world))+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size=}\DecValTok{12}\NormalTok{))+}
+\StringTok{    }\KeywordTok{ggtitle}\NormalTok{(timestamp_plot.world))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-4.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### Write polots}
+
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.world.long.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/Corona_Cases.world.long.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.world.loglong.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/Corona_Cases.world.loglong.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.world.mortality.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 100 rows containing missing values (geom_point).
+
+## Warning: Removed 100 row(s) containing missing values (geom_path).
+\end{verbatim}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/Corona_Cases.world.mortality.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.world.casecor.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/Corona_Cases.world.casecor.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##------------------------------------------}
+\NormalTok{## Plot US State Data}
+\NormalTok{##-----------------------------------------}
+
+\NormalTok{baseplot.US<-}\KeywordTok{ggplot}\NormalTok{(}\DataTypeTok{data=}\OtherTok{NULL}\NormalTok{,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Days_since_100_state,}\DataTypeTok{col=}\NormalTok{case_type))+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(~Province.State)+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"Log10 cases over time,"}\NormalTok{,timestamp_plot.world))}
+
+\NormalTok{Corona_Cases.US_state.long.plot<-baseplot.US+}\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{data=}\NormalTok{Corona_Cases.US_state.long,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{cases.log))}
+\NormalTok{##------------------------------------------}
+\NormalTok{## Plot US City Data}
+\NormalTok{##-----------------------------------------}
+
+
+
+\NormalTok{Corona_Cases.US.plotdata<-}\KeywordTok{filter}\NormalTok{(Corona_Cases.US_state,Province.State %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Pennsylvania"}\NormalTok{,}\StringTok{"Maryland"}\NormalTok{,}\StringTok{"New York"}\NormalTok{,}\StringTok{"New Jersey"}\NormalTok{) &}\StringTok{ }
+\StringTok{                                   }\NormalTok{City %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Bucks"}\NormalTok{,}\StringTok{"Baltimore City"}\NormalTok{, }\StringTok{"New York"}\NormalTok{,}\StringTok{"Burlington"}\NormalTok{) &}
+\StringTok{                                   }\NormalTok{Total_confirmed_cases>}\DecValTok{0}\NormalTok{) }
+\NormalTok{timestamp_plot<-}\KeywordTok{paste}\NormalTok{(}\StringTok{"Most recent date for which data available:"}\NormalTok{,}\KeywordTok{max}\NormalTok{(Corona_Cases.US.plotdata$Date))}\CommentTok{#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")}
+
+\NormalTok{city_colors<-}\KeywordTok{c}\NormalTok{(}\StringTok{"Bucks"}\NormalTok{=}\StringTok{'#beaed4'}\NormalTok{,}\StringTok{"Baltimore City"}\NormalTok{=}\StringTok{'#386cb0'}\NormalTok{, }\StringTok{"New York"}\NormalTok{=}\StringTok{'#7fc97f'}\NormalTok{,}\StringTok{"Burlington"}\NormalTok{=}\StringTok{'#fdc086'}\NormalTok{)}
+
+\NormalTok{##/////////////////////////}
+\NormalTok{### Plot death vs total case correlation}
+
+\NormalTok{(Corona_Cases.city.loglong.plot<-}\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{melt}\NormalTok{(Corona_Cases.US.plotdata,}\DataTypeTok{measure.vars =} \KeywordTok{c}\NormalTok{(}\StringTok{"Total_confirmed_cases.log"}\NormalTok{,}\StringTok{"Total_confirmed_deaths.log"}\NormalTok{),}\DataTypeTok{variable.name =} \StringTok{"case_type"}\NormalTok{,}\DataTypeTok{value.name =} \StringTok{"cases"}\NormalTok{),}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Date,}\DataTypeTok{y=}\NormalTok{cases,}\DataTypeTok{col=}\NormalTok{City,}\DataTypeTok{pch=}\NormalTok{case_type))+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{size=}\DecValTok{4}\NormalTok{)+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{()+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\CommentTok{#facet_wrap(~case_type)+}
+\StringTok{    }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"Log10 total and death cases over time,"}\NormalTok{,timestamp_plot))+}
+\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size=}\DecValTok{12}\NormalTok{))+}
+\StringTok{    }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \NormalTok{city_colors))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-5.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(Corona_Cases.city.long.plot<-}\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases.US.plotdata,Province.State !=}\StringTok{"New York"}\NormalTok{),}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Date,}\DataTypeTok{y=}\NormalTok{Total_confirmed_cases,}\DataTypeTok{col=}\NormalTok{City))+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{size=}\DecValTok{4}\NormalTok{)+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{()+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{facet_grid}\NormalTok{(~Province.State,}\DataTypeTok{scales =} \StringTok{"free_y"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"MD, PA, NJ total cases over time,"}\NormalTok{,timestamp_plot))+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size=}\DecValTok{12}\NormalTok{))+}
+\StringTok{  }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \NormalTok{city_colors))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-6.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(Corona_Cases.city.mortality.plot<-}\KeywordTok{ggplot}\NormalTok{(Corona_Cases.US.plotdata,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Date,}\DataTypeTok{y=}\NormalTok{mortality_rate,}\DataTypeTok{col=}\NormalTok{City))+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{size=}\DecValTok{3}\NormalTok{)+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size=}\DecValTok{2}\NormalTok{)+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"Mortality rate (deaths/total) over time,"}\NormalTok{,timestamp_plot))+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size=}\DecValTok{12}\NormalTok{))+}
+\StringTok{  }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \NormalTok{city_colors))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-7.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(Corona_Cases.city.casecor.plot<-}\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases.US.plotdata,Province.State !=}\StringTok{"New York"}\NormalTok{),}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Total_confirmed_deaths,}\DataTypeTok{y=}\NormalTok{Total_confirmed_cases,}\DataTypeTok{col=}\NormalTok{City))+}
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{size=}\DecValTok{3}\NormalTok{)+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size=}\DecValTok{2}\NormalTok{)+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\KeywordTok{paste}\NormalTok{(}\StringTok{"Correlation of death vs total cases,"}\NormalTok{,timestamp_plot))+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}\DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{size=}\DecValTok{12}\NormalTok{))+}
+\StringTok{  }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \NormalTok{city_colors))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/question1-8.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)}
+\CommentTok{#write_plot(Corona_Cases.US.plot,wd=results_dir_custom)}
+\CommentTok{#write_plot(Corona_Cases.tristate.plot,wd=results_dir_custom)}
+
+
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.city.long.plot,}\DataTypeTok{wd =} \NormalTok{results_dir_custom)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/custom/Corona_Cases.city.long.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.city.loglong.plot,}\DataTypeTok{wd =} \NormalTok{results_dir_custom)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/custom/Corona_Cases.city.loglong.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.city.mortality.plot,}\DataTypeTok{wd =} \NormalTok{results_dir_custom)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/custom/Corona_Cases.city.mortality.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(Corona_Cases.city.casecor.plot,}\DataTypeTok{wd =} \NormalTok{results_dir_custom)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/custom/Corona_Cases.city.casecor.plot.png"
+\end{verbatim}
+
+\subsubsection{Q2: What is the predicted number of
+cases?}\label{q2-what-is-the-predicted-number-of-cases}
+
+\paragraph{What is the prediction of COVID-19 based on model thus
+far?}\label{what-is-the-prediction-of-covid-19-based-on-model-thus-far}
+
+Additional questions:
+
+WHy did it take to day 40 to start a log linear trend? How long will it
+be till x number of cases? When will the plateu happen? Are any effects
+noticed with social distancing? Delays
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##------------------------------------------}
+\NormalTok{## Prediction and Prediction Accuracy}
+\NormalTok{##------------------------------------------}
+
+\CommentTok{# What is the predict # of cases for the next few days?}
+\CommentTok{# How is the model performing historically?}
+
+\CommentTok{# Formula for # of cases by x days}
+\KeywordTok{paste0}\NormalTok{(}\StringTok{"log10_total_cases = "}\NormalTok{,slope,}\StringTok{"*days + "}\NormalTok{,intercept)}
+\KeywordTok{paste0}\NormalTok{(}\StringTok{"total_cases = 10^("}\NormalTok{,slope,}\StringTok{"*days + "}\NormalTok{,intercept,}\StringTok{")"}\NormalTok{)}
+\CommentTok{#Days untill... cases:}
+\CommentTok{# 2.5k, 5k and 1M:}
+\KeywordTok{paste0}\NormalTok{(}\StringTok{"2.5k cases is "}\NormalTok{,(}\KeywordTok{log}\NormalTok{(}\FloatTok{2.5E5}\NormalTok{,}\DecValTok{10}\NormalTok{) -}\StringTok{ }\NormalTok{intercept)/slope,}\StringTok{" days"}\NormalTok{)}
+\KeywordTok{paste0}\NormalTok{(}\StringTok{"5k cases is "}\NormalTok{,(}\KeywordTok{log}\NormalTok{(}\FloatTok{5E5}\NormalTok{,}\DecValTok{10}\NormalTok{)-}\StringTok{ }\NormalTok{intercept)/slope,}\StringTok{" days"}\NormalTok{)}
+\KeywordTok{paste0}\NormalTok{(}\StringTok{"1M cases is "}\NormalTok{,(}\KeywordTok{log}\NormalTok{(}\FloatTok{1E6}\NormalTok{,}\DecValTok{10}\NormalTok{)-}\StringTok{ }\NormalTok{intercept)/slope,}\StringTok{" days"}\NormalTok{)}
+
+\KeywordTok{head}\NormalTok{(}\KeywordTok{filter}\NormalTok{(Corona_Cases.raw,Country.Region==}\StringTok{"US"}\NormalTok{))}
+\NormalTok{today_num<-}\KeywordTok{max}\NormalTok{(Corona_Cases.US$Days_since_100)}
+\NormalTok{predicted_days<-today_num+}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{7}\NormalTok{)}
+
+\CommentTok{#mods = dlply(mydf, .(x3), lm, formula = y ~ x1 + x2)}
+\CommentTok{#today:}
+\NormalTok{Corona_Cases.US[Corona_Cases.US$Days_since_100==(today_num}\DecValTok{-1}\NormalTok{),]}
+\NormalTok{Corona_Cases.US[Corona_Cases.US$Days_since_100==today_num,]}
+\NormalTok{Corona_Cases.US$type<-}\StringTok{"Historical"}
+\KeywordTok{names}\NormalTok{(Corona_Cases)}
+
+\NormalTok{Corona_Cases_wprediction<-}\KeywordTok{rbind.fill}\NormalTok{(Corona_Cases.US,}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{Code=}\StringTok{"USA"}\NormalTok{,}\DataTypeTok{type=}\StringTok{"MAR26_prediction"}\NormalTok{,}\KeywordTok{prediction_model}\NormalTok{(}\DataTypeTok{m=}\NormalTok{slope,}\DataTypeTok{b=}\NormalTok{intercept,}\DataTypeTok{days =} \NormalTok{predicted_days)))}
+
+\NormalTok{Corona_Cases.US.prediction<-Corona_Cases_wprediction }
+\NormalTok{prediction_values<-}\KeywordTok{prediction_model}\NormalTok{(}\DataTypeTok{m=}\NormalTok{slope,}\DataTypeTok{b=}\NormalTok{intercept,}\DataTypeTok{days =} \NormalTok{predicted_days)$Total_confirmed_cases}
+
+\NormalTok{histoical_model<-}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{date=}\NormalTok{today_num,}\DataTypeTok{m=}\NormalTok{slope,}\DataTypeTok{b=}\NormalTok{intercept)}
+
+\CommentTok{# model for previous y days}
+\NormalTok{historical_model_predictions<-}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{day_x=}\OtherTok{NULL}\NormalTok{,}\DataTypeTok{Days_since_100=}\OtherTok{NULL}\NormalTok{,}\DataTypeTok{Total_confirmed_cases=}\OtherTok{NULL}\NormalTok{,}\DataTypeTok{Total_confirmed_cases.log=}\OtherTok{NULL}\NormalTok{)}
+\NormalTok{for(i in }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{,}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{,}\DecValTok{6}\NormalTok{,}\DecValTok{7}\NormalTok{,}\DecValTok{8}\NormalTok{,}\DecValTok{9}\NormalTok{,}\DecValTok{10}\NormalTok{))\{}
+  \CommentTok{#i<-1}
+\NormalTok{day_x<-today_num-i }\CommentTok{# 1, 2, 3, 4}
+\NormalTok{day_x_nextweek<-day_x+}\KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{)}
+\NormalTok{model_fit_x<-}\KeywordTok{lm}\NormalTok{(}\DataTypeTok{data =} \KeywordTok{filter}\NormalTok{(Corona_Cases.US.case100,Days_since_100 <}\StringTok{ }\NormalTok{day_x),}\DataTypeTok{formula =} \NormalTok{Total_confirmed_cases.log~Days_since_100)}
+\NormalTok{prediction_day_x_nextweek<-}\KeywordTok{prediction_model}\NormalTok{(}\DataTypeTok{m =} \NormalTok{model_fit_x$coefficients[}\DecValTok{2}\NormalTok{],}\DataTypeTok{b =} \NormalTok{model_fit_x$coefficients[}\DecValTok{1}\NormalTok{],}\DataTypeTok{days =} \NormalTok{day_x_nextweek)}
+\NormalTok{prediction_day_x_nextweek$type<-}\StringTok{"Predicted"}
+\NormalTok{acutal_day_x_nextweek<-}\KeywordTok{filter}\NormalTok{(Corona_Cases.US,Days_since_100 %in%}\StringTok{ }\NormalTok{day_x_nextweek) %>%}\StringTok{ }\KeywordTok{select}\NormalTok{(}\KeywordTok{c}\NormalTok{(Days_since_100,Total_confirmed_cases,Total_confirmed_cases.log))}
+\NormalTok{acutal_day_x_nextweek$type<-}\StringTok{"Historical"}
+\NormalTok{historical_model_predictions.i<-}\KeywordTok{data.frame}\NormalTok{(}\DataTypeTok{day_x=}\NormalTok{day_x,}\KeywordTok{rbind}\NormalTok{(acutal_day_x_nextweek,prediction_day_x_nextweek))}
+\NormalTok{historical_model_predictions<-}\KeywordTok{rbind}\NormalTok{(historical_model_predictions.i,historical_model_predictions)}
+\NormalTok{\}}
+
+\NormalTok{historical_model_predictions.withHx<-}\KeywordTok{rbind.fill}\NormalTok{(historical_model_predictions,}\KeywordTok{data.frame}\NormalTok{(Corona_Cases.US,}\DataTypeTok{type=}\StringTok{"Historical"}\NormalTok{))}
+\NormalTok{historical_model_predictions.withHx$Total_confirmed_cases.log2<-}\KeywordTok{log}\NormalTok{(historical_model_predictions.withHx$Total_confirmed_cases,}\DecValTok{2}\NormalTok{)}
+\CommentTok{#TODO: fix case_type.. are we predicting deaths too?}
+\CommentTok{#TODO: better analysis of death rate!}
+\NormalTok{(historical_model_predictions.plot<-}\KeywordTok{ggplot}\NormalTok{(historical_model_predictions.withHx,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Days_since_100,}\DataTypeTok{y=}\NormalTok{Total_confirmed_cases.log,}\DataTypeTok{col=}\NormalTok{type))+}
+\StringTok{    }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{size=}\DecValTok{3}\NormalTok{)+}
+\StringTok{    }\NormalTok{default_theme+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)+}\StringTok{ }
+\StringTok{      }\CommentTok{#geom_abline(slope = slope,intercept =intercept,lty=2)+}
+\StringTok{    }\CommentTok{#facet_wrap(~case_type,ncol=1)+}
+\StringTok{    }\KeywordTok{scale_color_manual}\NormalTok{(}\DataTypeTok{values =} \KeywordTok{c}\NormalTok{(}\StringTok{"Historical"}\NormalTok{=}\StringTok{"#377eb8"}\NormalTok{,}\StringTok{"Predicted"}\NormalTok{=}\StringTok{"#e41a1c"}\NormalTok{)))}
+\KeywordTok{write_plot}\NormalTok{(historical_model_predictions.plot,}\DataTypeTok{wd=}\NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##------------------------------------------}
+\NormalTok{## filter input_data1}
+\NormalTok{##------------------------------------------}
+\NormalTok{input_data1.filter<-}\KeywordTok{fitler}\NormalTok{(input_data1,col1==}\StringTok{"foo"}\NormalTok{)}
+\NormalTok{##------------------------------------------}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## sub question 1}
+\NormalTok{##------------------------------------------}
+\KeywordTok{table}\NormalTok{(input_data1.filter$col<}\DecValTok{5}\NormalTok{)}
+\NormalTok{##------------------------------------------}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## sub question 2}
+\NormalTok{##------------------------------------------}
+\KeywordTok{table}\NormalTok{(input_data1.filter$col<}\DecValTok{10}\NormalTok{)}
+\NormalTok{##------------------------------------------}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## plot data}
+\NormalTok{##------------------------------------------}
+\NormalTok{(input_data1.filter.plot<-}\KeywordTok{ggplot}\NormalTok{(input_data1.filter,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{col1,}\DataTypeTok{y=}\NormalTok{col2.log))+}
+\StringTok{   }\KeywordTok{geom_point}\NormalTok{()+}
+\StringTok{   }\NormalTok{default_plot_theme)}
+\KeywordTok{write_plot}\NormalTok{(input_data1.filter.plot,}\DataTypeTok{wd=}\NormalTok{results_dir)}
+\NormalTok{##------------------------------------------}
+\NormalTok{results_dir}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Q3: What is the effect on social distancing, descreased
+mobility on case
+load?}\label{q3-what-is-the-effect-on-social-distancing-descreased-mobility-on-case-load}
+
+Load data from Google which compoutes \% change in user mobility
+relative to baseline for * Recreation\\
+* Workplace\\
+* Residence\\
+* Park\\
+* Grocery
+
+Data from \url{https://www.google.com/covid19/mobility/}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# See pre-processing section for script on gathering mobility data}
+
+\CommentTok{# UNDER DEVELOPMENT}
+\CommentTok{# TODO convert % to numeric in mobility data}
+\CommentTok{# TODO standardize headers in mobility data}
+\CommentTok{# TODO standardize counties in mobility data to JHU source}
+\CommentTok{# TODO normalize case load to population for mobility data}
+\CommentTok{# TODO automate get_mobility.py script so most recent data is availble }
+\NormalTok{mobility<-}\KeywordTok{read.csv}\NormalTok{(}\StringTok{"/Users/stevensmith/Projects/MIT_COVID19/mobility.csv"}\NormalTok{,}\DataTypeTok{header =} \NormalTok{T,}\DataTypeTok{stringsAsFactors =} \NormalTok{F)}
+\CommentTok{#mobility$Retail_Recreation<-as.numeric(sub(mobility$Retail_Recreation,pattern = "%",replacement = ""))}
+\CommentTok{#mobility$Workplace<-as.numeric(sub(mobility$Workplace,pattern = "%",replacement = ""))}
+\CommentTok{#mobility$Residential<-as.numeric(sub(mobility$Residential,pattern = "%",replacement = ""))}
+
+\NormalTok{##------------------------------------------}
+\NormalTok{## Show relationship between mobility and caseload}
+\NormalTok{##------------------------------------------}
+\NormalTok{mobility$County<-}\KeywordTok{gsub}\NormalTok{(mobility$County,}\DataTypeTok{pattern =} \StringTok{" County"}\NormalTok{,}\DataTypeTok{replacement =} \StringTok{""}\NormalTok{)}
+\NormalTok{Corona_Cases.US_state.tmp<-}\KeywordTok{merge}\NormalTok{(Corona_Cases.US_state,}\KeywordTok{rename}\NormalTok{(mobility,}\KeywordTok{c}\NormalTok{(}\StringTok{"State"}\NormalTok{=}\StringTok{"Province.State"}\NormalTok{,}\StringTok{"County"}\NormalTok{=}\StringTok{"City"}\NormalTok{)))}
+
+\NormalTok{Corona_Cases.US_state.tmp<-}\KeywordTok{merge}\NormalTok{(metadata,Corona_Cases.US_state.tmp)}
+\CommentTok{# Needs to happen upsteam, see todos}
+\NormalTok{Corona_Cases.US_state.tmp$Total_confirmed_cases.perperson<-Corona_Cases.US_state.tmp$Total_confirmed_cases/}\KeywordTok{as.numeric}\NormalTok{(Corona_Cases.US_state.tmp$Population)}
+\NormalTok{mobility_measures<-}\KeywordTok{c}\NormalTok{(}\StringTok{"Retail_Recreation"}\NormalTok{,}\StringTok{"Grocery_Pharmacy"}\NormalTok{,}\StringTok{"Parks"}\NormalTok{,}\StringTok{"Transit"}\NormalTok{,}\StringTok{"Workplace"}\NormalTok{,}\StringTok{"Residential"}\NormalTok{)}
+
+\NormalTok{plot_data<-}\KeywordTok{filter}\NormalTok{(Corona_Cases.US_state.tmp, Date.numeric==}\KeywordTok{max}\NormalTok{(Corona_Cases.US_state.tmp$Date.numeric) ) %>%}\StringTok{ }\KeywordTok{melt}\NormalTok{(}\DataTypeTok{measure.vars=}\NormalTok{mobility_measures) }
+\NormalTok{plot_data$value<-}\KeywordTok{as.numeric}\NormalTok{(}\KeywordTok{gsub}\NormalTok{(plot_data$value,}\DataTypeTok{pattern =} \StringTok{"%"}\NormalTok{,}\DataTypeTok{replacement =} \StringTok{""}\NormalTok{))}
+\NormalTok{plot_data<-}\KeywordTok{filter}\NormalTok{(plot_data,!}\KeywordTok{is.na}\NormalTok{(value))}
+
+\NormalTok{(mobility.plot<-}\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(plot_data,Province.State %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Pennsylvania"}\NormalTok{,}\StringTok{"Maryland"}\NormalTok{,}\StringTok{"New Jersey"}\NormalTok{,}\StringTok{"California"}\NormalTok{,}\StringTok{"Delaware"}\NormalTok{,}\StringTok{"Connecticut"}\NormalTok{)),}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{Total_confirmed_cases.perperson,}\DataTypeTok{x=}\NormalTok{value))+}\KeywordTok{geom_point}\NormalTok{()+}
+\StringTok{  }\KeywordTok{facet_grid}\NormalTok{(Province.State~variable,}\DataTypeTok{scales =} \StringTok{"free"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Mobility change from baseline (%)"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\KeywordTok{paste0}\NormalTok{(}\StringTok{"Confirmed cases (Today)"}\NormalTok{))+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Mobility change vs cases"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/mobility-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(mobility.global.plot<-}\KeywordTok{ggplot}\NormalTok{(plot_data,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y=}\NormalTok{Total_confirmed_cases.perperson,}\DataTypeTok{x=}\NormalTok{value))+}\KeywordTok{geom_point}\NormalTok{()+}
+\StringTok{  }\KeywordTok{facet_wrap}\NormalTok{(~variable,}\DataTypeTok{scales =} \StringTok{"free"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Mobility change from baseline (%)"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\KeywordTok{paste0}\NormalTok{(}\StringTok{"Confirmed cases (Today)"}\NormalTok{))+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Mobility change vs cases"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/mobility-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ddply}\NormalTok{(plot_data,}\KeywordTok{c}\NormalTok{(}\StringTok{"Province.State"}\NormalTok{),summarise,}\DataTypeTok{cor=}\KeywordTok{cor}\NormalTok{(}\DataTypeTok{y =}\NormalTok{Total_confirmed_cases.perperson,}\DataTypeTok{x=}\NormalTok{value)) %>%}\StringTok{ }\KeywordTok{arrange}\NormalTok{(-}\KeywordTok{abs}\NormalTok{(cor))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in cor(y = Total_confirmed_cases.perperson, x = value): the standard
+## deviation is zero
+\end{verbatim}
+
+\begin{verbatim}
+##          Province.State           cor
+## 1                  Utah -0.3590159026
+## 2                 Idaho -0.2867103192
+## 3            California -0.2763630341
+## 4               Montana -0.2573659725
+## 5                Alaska -0.2387503055
+## 6            New Jersey -0.1810506445
+## 7                Nevada -0.1808373913
+## 8              Colorado -0.1708961998
+## 9         New Hampshire  0.1670659156
+## 10               Kansas -0.1348826615
+## 11             Virginia -0.1210395687
+## 12              Georgia -0.1163314250
+## 13         South Dakota  0.1115462010
+## 14          Mississippi -0.1010438341
+## 15              Florida -0.0982403952
+## 16              Alabama -0.0963350471
+## 17              Vermont  0.0929696903
+## 18        Massachusetts -0.0895083094
+## 19               Hawaii  0.0864577623
+## 20               Oregon  0.0784270138
+## 21                Maine -0.0694374068
+## 22       South Carolina -0.0671507574
+## 23          Connecticut -0.0646973797
+## 24                 Ohio  0.0600986851
+## 25         Rhode Island  0.0577924692
+## 26             Delaware  0.0548847042
+## 27             Arkansas -0.0541001139
+## 28             Illinois  0.0530728988
+## 29            Wisconsin  0.0510527440
+## 30                 Iowa -0.0504192800
+## 31             Nebraska -0.0500884075
+## 32             Michigan  0.0440462646
+## 33            Tennessee -0.0372951265
+## 34                Texas  0.0347483587
+## 35            Minnesota  0.0331514514
+## 36         North Dakota -0.0288680795
+## 37       North Carolina -0.0285719051
+## 38              Indiana -0.0250587138
+## 39             Kentucky -0.0246430464
+## 40           New Mexico  0.0228288432
+## 41             Missouri -0.0211344404
+## 42              Arizona -0.0195634592
+## 43           Washington -0.0176846532
+## 44             Oklahoma -0.0155338721
+## 45         Pennsylvania -0.0075381689
+## 46             Maryland  0.0040454101
+## 47             New York -0.0002222124
+## 48 District of Columbia            NA
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(plot_data.permobility_summary<-}\KeywordTok{ddply}\NormalTok{(plot_data,}\KeywordTok{c}\NormalTok{(}\StringTok{"Province.State"}\NormalTok{,}\StringTok{"variable"}\NormalTok{),summarise,}\DataTypeTok{cor=}\KeywordTok{cor}\NormalTok{(}\DataTypeTok{y =}\NormalTok{Total_confirmed_cases.perperson,}\DataTypeTok{x=}\NormalTok{value),}\DataTypeTok{median_change=}\KeywordTok{median}\NormalTok{(}\DataTypeTok{x=}\NormalTok{value)) %>%}\StringTok{ }\KeywordTok{arrange}\NormalTok{(-}\KeywordTok{abs}\NormalTok{(cor)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##           Province.State          variable           cor median_change
+## 1                 Alaska           Transit -1.000000e+00         -63.0
+## 2               Delaware Retail_Recreation  1.000000e+00         -39.5
+## 3               Delaware  Grocery_Pharmacy  1.000000e+00         -17.5
+## 4               Delaware             Parks -1.000000e+00          20.5
+## 5               Delaware           Transit  1.000000e+00         -37.0
+## 6               Delaware         Workplace  1.000000e+00         -37.0
+## 7               Delaware       Residential -1.000000e+00          14.0
+## 8                 Alaska       Residential  9.801495e-01          13.0
+## 9                Vermont             Parks  9.380911e-01         -35.5
+## 10          South Dakota             Parks  9.145688e-01         -26.0
+## 11         New Hampshire             Parks  8.894686e-01         -20.0
+## 12           Connecticut  Grocery_Pharmacy -8.886774e-01          -6.0
+## 13                Hawaii           Transit  8.678700e-01         -89.0
+## 14                Alaska  Grocery_Pharmacy -8.522624e-01          -7.0
+## 15                  Utah         Workplace -8.257291e-01         -33.0
+## 16                Hawaii             Parks  8.240971e-01         -72.0
+## 17         Massachusetts         Workplace -8.160722e-01         -39.0
+## 18           Connecticut           Transit -7.928647e-01         -50.0
+## 19          Rhode Island         Workplace -7.858415e-01         -39.5
+## 20          North Dakota       Residential -7.746267e-01          17.0
+## 21            New Mexico             Parks  7.648296e-01         -31.5
+## 22                Hawaii         Workplace -7.535008e-01         -46.0
+## 23                  Utah Retail_Recreation -7.499142e-01         -36.0
+## 24                  Utah  Grocery_Pharmacy -7.376920e-01          -3.0
+## 25            California Retail_Recreation -7.357414e-01         -44.0
+## 26            New Jersey         Workplace -7.256778e-01         -44.0
+## 27                Kansas             Parks  7.251101e-01          72.0
+## 28            California         Workplace -7.138498e-01         -36.0
+## 29              Maryland         Workplace -7.086971e-01         -35.0
+## 30                  Utah           Transit -7.048700e-01         -18.0
+## 31            New Jersey Retail_Recreation -6.733613e-01         -62.5
+## 32           Connecticut       Residential  6.715324e-01          14.0
+## 33               Vermont  Grocery_Pharmacy -6.701429e-01         -25.0
+## 34              New York         Workplace -6.638950e-01         -34.5
+## 35            California  Grocery_Pharmacy -6.591532e-01         -12.0
+## 36         Massachusetts Retail_Recreation -6.589582e-01         -44.0
+## 37                Nevada           Transit -6.486644e-01         -20.0
+## 38          North Dakota           Transit  6.470030e-01         -48.0
+## 39          North Dakota Retail_Recreation -6.388331e-01         -43.5
+## 40              New York Retail_Recreation -6.238109e-01         -46.0
+## 41            California           Transit -6.143508e-01         -42.0
+## 42            California       Residential  6.128323e-01          14.0
+## 43          Rhode Island       Residential -6.022688e-01          18.5
+## 44                 Maine           Transit -6.014272e-01         -50.0
+## 45           Connecticut         Workplace -5.777085e-01         -39.0
+## 46               Montana Retail_Recreation -5.764223e-01         -51.0
+## 47               Montana         Workplace -5.719817e-01         -40.5
+## 48                 Maine         Workplace -5.693317e-01         -30.0
+## 49               Montana           Transit -5.620388e-01         -41.0
+## 50          North Dakota             Parks  5.503056e-01         -34.0
+## 51         Massachusetts  Grocery_Pharmacy -5.380281e-01          -7.0
+## 52          Rhode Island Retail_Recreation -5.360091e-01         -45.0
+## 53               Montana             Parks -5.303208e-01         -58.0
+## 54                 Idaho         Workplace -5.229692e-01         -29.5
+## 55                  Utah       Residential -5.197978e-01          12.0
+## 56            New Jersey             Parks -4.977182e-01          -6.0
+## 57                Hawaii       Residential  4.967913e-01          19.0
+## 58                Kansas  Grocery_Pharmacy -4.756168e-01         -14.0
+## 59                 Maine             Parks  4.740260e-01         -31.0
+## 60              Nebraska  Grocery_Pharmacy -4.726213e-01           0.0
+## 61                Nevada Retail_Recreation -4.700865e-01         -43.0
+## 62             Minnesota             Parks  4.690157e-01          -3.5
+## 63           Connecticut Retail_Recreation -4.661806e-01         -45.0
+## 64                 Idaho           Transit -4.630352e-01         -30.0
+## 65            New Jersey  Grocery_Pharmacy -4.604355e-01           2.5
+## 66         Massachusetts           Transit -4.555300e-01         -45.0
+## 67              Virginia           Transit -4.487712e-01         -33.0
+## 68               Montana       Residential  4.479566e-01          14.0
+## 69               Vermont       Residential  4.430198e-01          11.5
+## 70              Colorado         Workplace -4.394690e-01         -39.0
+## 71              Virginia Retail_Recreation -4.346862e-01         -35.0
+## 72              New York             Parks  4.340375e-01          20.0
+## 73          Pennsylvania         Workplace -4.323959e-01         -36.0
+## 74              Arkansas             Parks -4.305437e-01         -12.0
+## 75                 Idaho  Grocery_Pharmacy -4.253249e-01          -4.0
+## 76            New Jersey           Transit -4.196529e-01         -50.5
+## 77            New Mexico       Residential  4.193898e-01          13.5
+## 78              Colorado       Residential  4.147624e-01          14.0
+## 79          Rhode Island             Parks  4.145638e-01          52.0
+## 80              New York           Transit -4.145294e-01         -48.0
+## 81               Florida             Parks -4.096604e-01         -43.0
+## 82              Michigan         Workplace -4.047589e-01         -40.0
+## 83          North Dakota  Grocery_Pharmacy -4.046811e-01          -9.5
+## 84          Pennsylvania Retail_Recreation -3.978054e-01         -45.0
+## 85                Oregon             Parks  3.959356e-01          16.5
+## 86                 Idaho Retail_Recreation -3.879193e-01         -41.0
+## 87               Arizona  Grocery_Pharmacy -3.874411e-01         -15.0
+## 88                Hawaii  Grocery_Pharmacy  3.846654e-01         -34.0
+## 89               Montana  Grocery_Pharmacy -3.826009e-01         -16.0
+## 90                Kansas Retail_Recreation -3.815962e-01         -39.0
+## 91          Rhode Island  Grocery_Pharmacy  3.748927e-01          -7.5
+## 92              Colorado           Transit -3.740063e-01         -36.0
+## 93                  Utah             Parks -3.716502e-01           0.0
+## 94              Colorado Retail_Recreation -3.711122e-01         -44.0
+## 95                 Idaho             Parks  3.652935e-01         -22.0
+## 96              Illinois           Transit -3.576090e-01         -31.0
+## 97               Arizona           Transit  3.565089e-01         -38.0
+## 98                Alaska         Workplace -3.561072e-01         -35.0
+## 99              Maryland Retail_Recreation -3.531858e-01         -39.0
+## 100         South Dakota           Transit -3.529519e-01         -40.0
+## 101              Vermont Retail_Recreation  3.488753e-01         -57.0
+## 102          Mississippi             Parks  3.405218e-01         -25.0
+## 103           Washington           Transit -3.356081e-01         -33.5
+## 104             Colorado             Parks -3.338503e-01           2.0
+## 105           New Mexico Retail_Recreation -3.304166e-01         -42.0
+## 106              Florida           Transit -3.272449e-01         -49.0
+## 107                Maine Retail_Recreation -3.256381e-01         -41.5
+## 108              Florida       Residential  3.219248e-01          14.0
+## 109             Colorado  Grocery_Pharmacy -3.183064e-01         -17.0
+## 110             Virginia         Workplace -3.180398e-01         -32.0
+## 111        New Hampshire  Grocery_Pharmacy -3.180236e-01          -6.0
+## 112                Texas           Transit  3.135843e-01         -42.0
+## 113             Maryland  Grocery_Pharmacy -3.084032e-01         -10.0
+## 114             Arkansas Retail_Recreation -3.077937e-01         -30.0
+## 115              Alabama         Workplace -3.064330e-01         -29.0
+## 116                 Iowa       Residential -3.016748e-01          13.0
+## 117             Kentucky             Parks  3.009198e-01          28.5
+## 118               Nevada       Residential -3.003301e-01          18.0
+## 119           California             Parks -2.988077e-01         -38.0
+## 120             Arkansas       Residential  2.976033e-01          12.0
+## 121              Arizona       Residential  2.964677e-01          13.0
+## 122       North Carolina Retail_Recreation -2.960871e-01         -33.0
+## 123              Florida         Workplace -2.936010e-01         -33.0
+## 124               Oregon       Residential  2.899537e-01          10.5
+## 125           New Jersey       Residential  2.897533e-01          18.0
+## 126                Maine  Grocery_Pharmacy -2.872983e-01         -10.5
+## 127             Virginia  Grocery_Pharmacy -2.866668e-01          -8.0
+## 128         Pennsylvania             Parks  2.858636e-01          13.0
+## 129           New Mexico  Grocery_Pharmacy -2.853571e-01         -12.0
+## 130             New York  Grocery_Pharmacy -2.853045e-01           8.0
+## 131       South Carolina       Residential  2.767172e-01          12.0
+## 132              Indiana  Grocery_Pharmacy -2.747970e-01          -5.5
+## 133          Mississippi  Grocery_Pharmacy -2.703852e-01          -8.0
+## 134            Tennessee Retail_Recreation -2.699664e-01         -30.0
+## 135               Hawaii Retail_Recreation  2.610592e-01         -56.0
+## 136              Georgia  Grocery_Pharmacy -2.598244e-01         -10.0
+## 137        New Hampshire Retail_Recreation -2.551458e-01         -41.0
+## 138                 Iowa         Workplace -2.549528e-01         -29.0
+## 139             Maryland       Residential  2.547816e-01          15.0
+## 140             Nebraska       Residential  2.501824e-01          14.0
+## 141             Illinois         Workplace -2.487918e-01         -30.0
+## 142            Wisconsin           Transit -2.465065e-01         -23.5
+## 143        Massachusetts       Residential  2.421259e-01          15.0
+## 144              Arizona Retail_Recreation -2.269253e-01         -42.5
+## 145                 Iowa             Parks  2.242605e-01          28.5
+## 146           Washington         Workplace -2.180272e-01         -38.0
+## 147              Georgia Retail_Recreation -2.173409e-01         -41.0
+## 148             Michigan Retail_Recreation -2.168307e-01         -53.0
+## 149               Kansas       Residential  2.123547e-01          13.0
+## 150         Rhode Island           Transit -2.117649e-01         -56.0
+## 151         Pennsylvania  Grocery_Pharmacy -2.113410e-01          -6.0
+## 152             Nebraska Retail_Recreation -2.082028e-01         -37.5
+## 153            Tennessee  Grocery_Pharmacy -2.078832e-01           6.0
+## 154              Alabama       Residential  2.062622e-01          11.0
+## 155             Michigan  Grocery_Pharmacy -2.045430e-01         -11.0
+## 156             Kentucky       Residential  2.044962e-01          12.0
+## 157              Georgia         Workplace -2.019012e-01         -33.5
+## 158          Mississippi         Workplace -2.010190e-01         -33.0
+## 159              Florida  Grocery_Pharmacy -1.980474e-01         -14.0
+## 160            Wisconsin         Workplace -1.976285e-01         -31.0
+## 161         North Dakota         Workplace  1.968640e-01         -33.5
+## 162             Oklahoma       Residential  1.932994e-01          15.0
+## 163             Oklahoma         Workplace -1.906996e-01         -30.0
+## 164                Texas       Residential -1.883315e-01          15.0
+## 165             Oklahoma Retail_Recreation  1.873703e-01         -31.0
+## 166            Tennessee             Parks  1.844074e-01          10.5
+## 167              Arizona             Parks  1.837907e-01         -44.5
+## 168            Tennessee         Workplace -1.827435e-01         -31.0
+## 169            Wisconsin             Parks  1.812903e-01          51.5
+## 170             Missouri Retail_Recreation -1.800298e-01         -37.0
+## 171             Oklahoma  Grocery_Pharmacy  1.787751e-01          -0.5
+## 172         South Dakota Retail_Recreation -1.746248e-01         -38.5
+## 173                Texas             Parks  1.736111e-01         -42.0
+## 174             Kentucky         Workplace -1.732501e-01         -34.5
+## 175           Washington             Parks  1.724897e-01          -3.5
+## 176              Indiana Retail_Recreation -1.723565e-01         -38.0
+## 177        New Hampshire       Residential -1.715010e-01          14.0
+## 178            Minnesota         Workplace  1.707732e-01         -33.0
+## 179       North Carolina           Transit  1.688764e-01         -32.0
+## 180              Arizona         Workplace -1.642294e-01         -35.0
+## 181       South Carolina Retail_Recreation -1.633272e-01         -35.0
+## 182              Alabama           Transit -1.631734e-01         -36.5
+## 183              Florida Retail_Recreation -1.604293e-01         -43.0
+## 184              Alabama  Grocery_Pharmacy -1.601563e-01          -2.0
+## 185         Pennsylvania           Transit -1.580547e-01         -41.5
+## 186       South Carolina             Parks -1.571772e-01         -23.0
+## 187       South Carolina         Workplace  1.561853e-01         -30.0
+## 188             Illinois       Residential  1.534711e-01          14.0
+## 189        New Hampshire         Workplace -1.499564e-01         -37.0
+## 190             Missouri           Transit -1.486519e-01         -23.0
+## 191       North Carolina       Residential  1.435933e-01          13.0
+## 192         South Dakota  Grocery_Pharmacy  1.408678e-01          -9.0
+## 193               Nevada  Grocery_Pharmacy -1.388614e-01          -6.5
+## 194             Michigan             Parks  1.382268e-01          33.0
+## 195              Vermont         Workplace -1.366545e-01         -43.0
+## 196               Nevada         Workplace -1.357693e-01         -40.0
+## 197                Idaho       Residential -1.355995e-01          11.0
+## 198             Missouri  Grocery_Pharmacy -1.329874e-01           2.0
+## 199              Alabama             Parks  1.329547e-01          -1.0
+## 200                 Iowa           Transit -1.328017e-01         -25.0
+## 201             Kentucky Retail_Recreation -1.310149e-01         -30.0
+## 202             Arkansas         Workplace -1.292491e-01         -26.0
+## 203            Minnesota Retail_Recreation  1.292107e-01         -41.0
+## 204                Maine       Residential -1.256546e-01          11.0
+## 205             Nebraska           Transit  1.250813e-01         -11.5
+## 206       North Carolina             Parks  1.243907e-01           7.0
+## 207                 Ohio           Transit  1.234934e-01         -28.0
+## 208               Oregon  Grocery_Pharmacy  1.212809e-01          -7.0
+## 209           New Mexico         Workplace -1.206169e-01         -34.0
+## 210             Arkansas  Grocery_Pharmacy  1.204187e-01           3.5
+## 211         Pennsylvania       Residential  1.197503e-01          15.0
+## 212             Virginia       Residential  1.192923e-01          14.0
+## 213            Minnesota  Grocery_Pharmacy -1.177003e-01          -4.0
+## 214             Illinois  Grocery_Pharmacy -1.170483e-01           2.0
+## 215              Georgia       Residential -1.164178e-01          13.0
+## 216            Minnesota           Transit -1.160218e-01         -28.5
+## 217            Wisconsin       Residential -1.151553e-01          14.0
+## 218       South Carolina           Transit -1.134097e-01         -45.0
+## 219             Illinois Retail_Recreation -1.127271e-01         -40.0
+## 220           New Mexico           Transit  1.111206e-01         -38.0
+## 221            Wisconsin Retail_Recreation -1.101510e-01         -44.5
+## 222           Washington       Residential  1.096651e-01          13.0
+## 223              Indiana         Workplace -1.054354e-01         -34.0
+## 224             Illinois             Parks  1.039082e-01          26.5
+## 225          Mississippi       Residential  1.033007e-01          13.0
+## 226             Michigan       Residential  1.018827e-01          15.0
+## 227               Alaska Retail_Recreation -9.967427e-02         -35.5
+## 228             Nebraska         Workplace -9.880097e-02         -32.0
+## 229           Washington Retail_Recreation -9.828677e-02         -42.0
+## 230            Tennessee       Residential  9.764368e-02          12.0
+## 231               Kansas           Transit -9.726179e-02         -26.5
+## 232               Oregon           Transit -9.714576e-02         -28.0
+## 233                Texas Retail_Recreation -9.449772e-02         -39.0
+## 234               Kansas         Workplace -9.358003e-02         -31.0
+## 235             Virginia             Parks  8.990914e-02           6.0
+## 236             Oklahoma             Parks -8.988335e-02         -23.0
+## 237                 Ohio         Workplace -8.811055e-02         -35.0
+## 238            Wisconsin  Grocery_Pharmacy  8.586338e-02          -1.0
+## 239             Kentucky  Grocery_Pharmacy -8.573843e-02           4.5
+## 240             Maryland             Parks  8.314298e-02          27.0
+## 241              Georgia           Transit -7.994977e-02         -35.0
+## 242        New Hampshire           Transit -7.614297e-02         -57.0
+## 243             New York       Residential  7.492556e-02          17.5
+## 244             Kentucky           Transit  7.262730e-02         -31.0
+## 245                 Ohio       Residential  7.060940e-02          14.0
+## 246       North Carolina  Grocery_Pharmacy  6.626951e-02           1.0
+## 247             Missouri         Workplace  6.485429e-02         -28.5
+## 248       North Carolina         Workplace -6.289099e-02         -31.0
+## 249                 Iowa  Grocery_Pharmacy -6.027869e-02           4.0
+## 250        Massachusetts             Parks -5.844217e-02          39.0
+## 251             Arkansas           Transit  5.042609e-02         -27.0
+## 252            Tennessee           Transit  4.941905e-02         -32.0
+## 253              Georgia             Parks -4.934840e-02          -6.0
+## 254           Washington  Grocery_Pharmacy -4.176036e-02          -7.0
+## 255             Michigan           Transit  4.047712e-02         -46.0
+## 256               Oregon         Workplace -3.896950e-02         -32.0
+## 257               Nevada             Parks  3.597108e-02         -12.5
+## 258          Connecticut             Parks  3.536287e-02          43.0
+## 259       South Carolina  Grocery_Pharmacy -3.350586e-02           1.0
+## 260                Texas         Workplace  3.198428e-02         -31.0
+## 261              Indiana       Residential  3.120179e-02          12.0
+## 262                 Ohio Retail_Recreation -3.081374e-02         -36.0
+## 263          Mississippi Retail_Recreation  2.558103e-02         -40.0
+## 264             Missouri             Parks -2.557797e-02           0.5
+## 265              Vermont           Transit  2.356745e-02         -63.0
+## 266              Alabama Retail_Recreation -1.977934e-02         -39.0
+## 267                 Iowa Retail_Recreation -1.967192e-02         -37.0
+## 268                 Ohio  Grocery_Pharmacy  1.574805e-02           0.0
+## 269         South Dakota       Residential  1.505711e-02          15.0
+## 270          Mississippi           Transit  1.465517e-02         -38.5
+## 271              Indiana           Transit -1.161497e-02         -29.0
+## 272         South Dakota         Workplace  9.809192e-03         -35.0
+## 273             Oklahoma           Transit -9.713828e-03         -26.0
+## 274                 Ohio             Parks  9.367194e-03          67.5
+## 275             Missouri       Residential  9.251655e-03          13.0
+## 276             Maryland           Transit  7.312260e-03         -39.0
+## 277              Indiana             Parks -5.627979e-03          29.0
+## 278             Nebraska             Parks -3.721932e-03          55.5
+## 279                Texas  Grocery_Pharmacy -2.336286e-03         -13.5
+## 280            Minnesota       Residential -1.543100e-03          18.0
+## 281               Oregon Retail_Recreation -8.703511e-05         -41.0
+## 282               Alaska             Parks            NA          29.0
+## 283 District of Columbia Retail_Recreation            NA         -69.0
+## 284 District of Columbia  Grocery_Pharmacy            NA         -28.0
+## 285 District of Columbia             Parks            NA         -65.0
+## 286 District of Columbia           Transit            NA         -69.0
+## 287 District of Columbia         Workplace            NA         -48.0
+## 288 District of Columbia       Residential            NA          17.0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(plot_data,Province.State %in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Pennsylvania"}\NormalTok{,}\StringTok{"Maryland"}\NormalTok{,}\StringTok{"New Jersey"}\NormalTok{,}\StringTok{"California"}\NormalTok{,}\StringTok{"Delaware"}\NormalTok{,}\StringTok{"Connecticut"}\NormalTok{)),}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{Total_confirmed_cases.perperson,}\DataTypeTok{fill=}\NormalTok{variable))+}\KeywordTok{geom_histogram}\NormalTok{()+}
+\StringTok{  }\KeywordTok{facet_grid}\NormalTok{(~Province.State)+}
+\StringTok{  }\NormalTok{default_theme}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+\end{verbatim}
+
+\includegraphics{Corona_Prediction_files/figure-latex/mobility-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(mobility.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/mobility.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(mobility.global.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/mobility.global.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# TODO secondary question: rank greatest to least mobility}
+
+\NormalTok{(plot_data.permobility_summary.plot<-}\KeywordTok{ggplot}\NormalTok{(plot_data.permobility_summary,}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{variable,}\DataTypeTok{y=}\NormalTok{median_change))+}
+\StringTok{  }\KeywordTok{geom_jitter}\NormalTok{(}\DataTypeTok{size=}\DecValTok{2}\NormalTok{,}\DataTypeTok{width=}\NormalTok{.}\DecValTok{2}\NormalTok{)+}
+\StringTok{  }\CommentTok{#geom_jitter(data=plot_data.permobility_summary %>% arrange(-abs(median_change)) %>% head(n=15),aes(col=Province.State),size=2,width=.2)+}
+\StringTok{  }\NormalTok{default_theme+}
+\StringTok{  }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Per-Sate Median Change in Mobility"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Mobility Meaure"}\NormalTok{)+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Median Change from Baseline"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Corona_Prediction_files/figure-latex/mobility-4.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{write_plot}\NormalTok{(plot_data.permobility_summary.plot,}\DataTypeTok{wd =} \NormalTok{results_dir)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "/Users/stevensmith/Projects/coronavirus/results/plot_data.permobility_summary.plot.png"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{timestamp}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## ##------ Thu Apr 16 00:39:17 2020 ------##
+\end{verbatim}
+
+\section{CONCLUSION}\label{conclusion}
+
+A concluding remark(s) on the major findings, preferabbly to pointers
+where the data can be found.
+
+Helps to have a bullet point for each analysis chunk or an answer to
+each of the above `questions': * Answer 1. * Answer 2.
+
+\section{END}\label{end}
+
+Cheatsheet: \url{http://rmarkdown.rstudio.com}\textgreater{} \# TODO *
+mkdir the results dir if it doesn't exist * make ggplot a dependency for
+plot.utils? * automated way of downloading daily data * fix plot\_utils,
+add dataset and documentation * Auto git mv the new data?
+
+\section{Sandbox}\label{sandbox}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{##TODO:}
+\CommentTok{# Geographical heatmap!}
+\KeywordTok{install.packages}\NormalTok{(}\StringTok{"maps"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(maps)}
+\NormalTok{library}
+\NormalTok{mi_counties <-}\StringTok{ }\KeywordTok{map_data}\NormalTok{(}\StringTok{"county"}\NormalTok{, }\StringTok{"pennsylvania"}\NormalTok{) %>%}\StringTok{ }
+\StringTok{  }\KeywordTok{select}\NormalTok{(}\DataTypeTok{lon =} \NormalTok{long, lat, group, }\DataTypeTok{id =} \NormalTok{subregion)}
+\KeywordTok{head}\NormalTok{(mi_counties)}
+
+\KeywordTok{ggplot}\NormalTok{(mi_counties, }\KeywordTok{aes}\NormalTok{(lon, lat)) +}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{size =} \NormalTok{.}\DecValTok{25}\NormalTok{, }\DataTypeTok{show.legend =} \OtherTok{FALSE}\NormalTok{) +}
+\StringTok{  }\KeywordTok{coord_quickmap}\NormalTok{()}
+\NormalTok{mi_counties$cases<-}\DecValTok{1}\NormalTok{:}\DecValTok{2226}
+\KeywordTok{name_overlaps}\NormalTok{(metadata,Corona_Cases.US_state)}
+
+\NormalTok{tmp<-}\KeywordTok{merge}\NormalTok{(Corona_Cases.US_state,metadata)}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(tmp,Province.State==}\StringTok{"Pennsylvania"}\NormalTok{), }\KeywordTok{aes}\NormalTok{(Long, Lat, }\DataTypeTok{group =} \KeywordTok{as.factor}\NormalTok{(City))) +}
+\StringTok{  }\KeywordTok{geom_polygon}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{fill =} \NormalTok{Total_confirmed_cases), }\DataTypeTok{colour =} \StringTok{"grey50"}\NormalTok{) +}\StringTok{ }
+\StringTok{  }\KeywordTok{coord_quickmap}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\end{document}

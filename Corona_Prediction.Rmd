@@ -3,9 +3,9 @@ title: "Corona_Case_Prediction"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
 output:
-  html_document:
-    toc: yes
   pdf_document:
+    toc: yes
+  html_document:
     toc: yes
 last_updated: 3/24/2020
 ---
@@ -233,7 +233,7 @@ table(select(Corona_Cases.long,c("Country.Region","case_type")))
 
 # Decouple population and lat/long data, refactor to make it more tidy
 metadata_columns<-c("Lat","Long","Population")
-metadata<-unique(select(filter(Corona_Cases.long,case_type=="death"),c("Province.State","Country.Region",all_of(metadata_columns))))
+metadata<-unique(select(filter(Corona_Cases.long,case_type=="death"),c("Country.Region","Province.State","City",all_of(metadata_columns))))
 Corona_Cases.long<-select(Corona_Cases.long,-all_of(metadata_columns))
 
 # Some counties are not summarized on the country level. collapse all but US
@@ -642,28 +642,60 @@ Data from https://www.google.com/covid19/mobility/
 # TODO normalize case load to population for mobility data
 # TODO automate get_mobility.py script so most recent data is availble 
 mobility<-read.csv("/Users/stevensmith/Projects/MIT_COVID19/mobility.csv",header = T,stringsAsFactors = F)
-mobility$Retail_Recreation<-as.numeric(sub(mobility$Retail_Recreation,pattern = "%",replacement = ""))
-mobility$Workplace<-as.numeric(sub(mobility$Workplace,pattern = "%",replacement = ""))
-mobility$Residential<-as.numeric(sub(mobility$Residential,pattern = "%",replacement = ""))
+#mobility$Retail_Recreation<-as.numeric(sub(mobility$Retail_Recreation,pattern = "%",replacement = ""))
+#mobility$Workplace<-as.numeric(sub(mobility$Workplace,pattern = "%",replacement = ""))
+#mobility$Residential<-as.numeric(sub(mobility$Residential,pattern = "%",replacement = ""))
 
 ##------------------------------------------
 ## Show relationship between mobility and caseload
 ##------------------------------------------
 mobility$County<-gsub(mobility$County,pattern = " County",replacement = "")
 Corona_Cases.US_state.tmp<-merge(Corona_Cases.US_state,rename(mobility,c("State"="Province.State","County"="City")))
-filter(Corona_Cases.US_state.tmp,grepl(x=City,pattern = "Bucks"))
-tail(Corona_Cases.US_state.tmp)
-unique(Corona_Cases.US_state.tmp$Province.State)
-plot_data<-filter(Corona_Cases.US_state.tmp,Date.numeric==max(Corona_Cases.US_state.tmp$Date.numeric) & Province.State %in% c("Pennsylvania","Maryland","New Jersey")) %>% melt(measure.vars=c("Retail_Recreation","Workplace","Residential"))
 
-(mobility.plot<-ggplot(plot_data,aes(y=Total_confirmed_cases,x=value))+geom_point()+
-  facet_grid(Province.State~variable,scales = "free_y")+
+Corona_Cases.US_state.tmp<-merge(metadata,Corona_Cases.US_state.tmp)
+# Needs to happen upsteam, see todos
+Corona_Cases.US_state.tmp$Total_confirmed_cases.perperson<-Corona_Cases.US_state.tmp$Total_confirmed_cases/as.numeric(Corona_Cases.US_state.tmp$Population)
+mobility_measures<-c("Retail_Recreation","Grocery_Pharmacy","Parks","Transit","Workplace","Residential")
+
+plot_data<-filter(Corona_Cases.US_state.tmp, Date.numeric==max(Corona_Cases.US_state.tmp$Date.numeric) ) %>% melt(measure.vars=mobility_measures) 
+plot_data$value<-as.numeric(gsub(plot_data$value,pattern = "%",replacement = ""))
+plot_data<-filter(plot_data,!is.na(value))
+
+(mobility.plot<-ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(y=Total_confirmed_cases.perperson,x=value))+geom_point()+
+  facet_grid(Province.State~variable,scales = "free")+
   xlab("Mobility change from baseline (%)")+
   ylab(paste0("Confirmed cases (Today)"))+
   default_theme+
   ggtitle("Mobility change vs cases"))
 
+(mobility.global.plot<-ggplot(plot_data,aes(y=Total_confirmed_cases.perperson,x=value))+geom_point()+
+  facet_wrap(~variable,scales = "free")+
+  xlab("Mobility change from baseline (%)")+
+  ylab(paste0("Confirmed cases (Today)"))+
+  default_theme+
+  ggtitle("Mobility change vs cases"))
+
+ddply(plot_data,c("Province.State"),summarise,cor=cor(y =Total_confirmed_cases.perperson,x=value)) %>% arrange(-abs(cor))
+(plot_data.permobility_summary<-ddply(plot_data,c("Province.State","variable"),summarise,cor=cor(y =Total_confirmed_cases.perperson,x=value),median_change=median(x=value)) %>% arrange(-abs(cor)))
+
+ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(x=Total_confirmed_cases.perperson,fill=variable))+geom_histogram()+
+  facet_grid(~Province.State)+
+  default_theme
+
 write_plot(mobility.plot,wd = results_dir)
+write_plot(mobility.global.plot,wd = results_dir)
+
+# TODO secondary question: rank greatest to least mobility
+
+(plot_data.permobility_summary.plot<-ggplot(plot_data.permobility_summary,aes(x=variable,y=median_change))+
+  geom_jitter(size=2,width=.2)+
+  #geom_jitter(data=plot_data.permobility_summary %>% arrange(-abs(median_change)) %>% head(n=15),aes(col=Province.State),size=2,width=.2)+
+  default_theme+
+  ggtitle("Per-Sate Median Change in Mobility")+
+  xlab("Mobility Meaure")+
+  ylab("Median Change from Baseline"))
+write_plot(plot_data.permobility_summary.plot,wd = results_dir)
+
 ```
 
 ```{r}
