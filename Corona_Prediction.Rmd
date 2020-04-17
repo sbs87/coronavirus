@@ -53,7 +53,7 @@ The following sections are outside the scope of the 'analysis' but are still nee
 python3 get_google_mobility.py
 # writes csv file of mobility data as "mobility.csv"
 
-# TODO: customize get_google_mobility.py script, add arguments
+
 
 ```
 
@@ -284,7 +284,7 @@ Corona_Cases$Days_since_100<-Corona_Cases$Date.numeric-Corona_Cases$case100_date
 ##------------------------------------------
 ## Add population and lat/long data (CURRENTLY US ONLY)
 ##------------------------------------------
-# TODO Add population data for non US cities/regions
+
 kable(filter(metadata,(is.na(Country.Region) | is.na(Population) )) %>% select(c("Country.Region","Province.State","City")) %>% unique(),caption = "Regions for which either population or Country is NA")
 
 # Drop missing data 
@@ -684,11 +684,7 @@ Data from https://www.google.com/covid19/mobility/
 # See pre-processing section for script on gathering mobility data
 
 # UNDER DEVELOPMENT
-# TODO convert % to numeric in mobility data
-# TODO standardize headers in mobility data
-# TODO standardize counties in mobility data to JHU source
-# TODO normalize case load to population for mobility data
-# TODO automate get_mobility.py script so most recent data is availble 
+
 mobility<-read.csv("/Users/stevensmith/Projects/MIT_COVID19/mobility.csv",header = T,stringsAsFactors = F)
 #mobility$Retail_Recreation<-as.numeric(sub(mobility$Retail_Recreation,pattern = "%",replacement = ""))
 #mobility$Workplace<-as.numeric(sub(mobility$Workplace,pattern = "%",replacement = ""))
@@ -737,7 +733,6 @@ ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jer
 write_plot(mobility.plot,wd = results_dir)
 write_plot(mobility.global.plot,wd = results_dir)
 
-# TODO secondary question: rank greatest to least mobility
 
 (plot_data.permobility_summary.plot<-ggplot(plot_data.permobility_summary,aes(x=variable,y=median_change))+
   geom_jitter(size=2,width=.2)+
@@ -794,19 +789,14 @@ End: `r paste(timestamp())`
 
 Cheatsheet:
 http://rmarkdown.rstudio.com>
-# TODO
-* mkdir the results dir if it doesn't exist 
-* make ggplot a dependency for plot.utils?  
-* automated way of downloading daily data 
-* fix plot_utils, add dataset and documentation 
-* Auto git mv the new data? 
+
 
 
 
 # Sandbox
 
 ```{r eval=F}
-##TODO:
+
 # Geographical heatmap!
 install.packages("maps")
 library(maps)
