@@ -281,11 +281,37 @@ Corona_Cases$Total_confirmed_deaths.log<-log(Corona_Cases$Total_confirmed_deaths
 Corona_Cases<-merge(Corona_Cases,ddply(filter(Corona_Cases,Total_confirmed_cases>100),c("Country.Region"),summarise,case100_date=min(Date.numeric)))
 Corona_Cases$Days_since_100<-Corona_Cases$Date.numeric-Corona_Cases$case100_date
 
-# Filter df for US state-wide stats
+##------------------------------------------
+## Add population and lat/long data (CURRENTLY US ONLY)
+##------------------------------------------
+# TODO Add population data for non US cities/regions
+kable(filter(metadata,(is.na(Country.Region) | is.na(Population) )) %>% select(c("Country.Region","Province.State","City")) %>% unique(),caption = "Regions for which either population or Country is NA")
+
+# Drop missing data 
+metadata<-filter(metadata,!(is.na(Country.Region) | is.na(Population) ))
+# Convert remaining pop to numeric
+metadata$Population<-as.numeric(metadata$Population)
+
+# Add metadata to cases
+Corona_Cases<-merge(Corona_Cases,metadata,all.x = T)
+
+##------------------------------------------
+## Compute total and death cases relative to population 
+##------------------------------------------
+
+Corona_Cases$Total_confirmed_cases.per100<-100*Corona_Cases$Total_confirmed_cases/Corona_Cases$Population
+Corona_Cases$Total_confirmed_deaths.per100<-100*Corona_Cases$Total_confirmed_deaths/Corona_Cases$Population
+
+
+##------------------------------------------
+## Filter df for US state-wide stats
+##------------------------------------------
+
 Corona_Cases.US_state<-filter(Corona_Cases,Country.Region=="US_state" & Total_confirmed_cases>0 ) 
 kable(table(select(Corona_Cases.US_state,c("Province.State"))),caption = "Number of longitudinal datapoints (total/death) per state")
 Corona_Cases.US_state<-merge(Corona_Cases.US_state,ddply(filter(Corona_Cases.US_state,Total_confirmed_cases>100),c("Province.State"),summarise,case100_date_state=min(Date.numeric)))
 Corona_Cases.US_state$Days_since_100_state<-Corona_Cases.US_state$Date.numeric-Corona_Cases.US_state$case100_date_state
+
 
 ```
 ## ANALYSIS
@@ -475,9 +501,7 @@ Corona_Cases.US_state.long.plot<-baseplot.US+geom_point(data=Corona_Cases.US_sta
 ## Plot US City Data
 ##-----------------------------------------
 
-
-
-Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & 
+Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") &
                                    City %in% c("Bucks","Baltimore City", "New York","Burlington") &
                                    Total_confirmed_cases>0) 
 timestamp_plot<-paste("Most recent date for which data available:",max(Corona_Cases.US.plotdata$Date))#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
@@ -525,15 +549,20 @@ theme(legend.position = "bottom",plot.title = element_text(size=12))+
   scale_color_manual(values = city_colors))
 
 
-#write_plot(Corona_Cases.US.log.plot,wd=results_dir_custom)
-#write_plot(Corona_Cases.US.plot,wd=results_dir_custom)
-#write_plot(Corona_Cases.tristate.plot,wd=results_dir_custom)
-
+(Corona_Cases.city.long.normalized.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Date,y=Total_confirmed_cases.per100,col=City))+
+  geom_point(size=4)+
+  geom_line()+
+  default_theme+
+  facet_grid(~Province.State)+
+  ggtitle(paste("MD, PA, NJ total cases over time per 100 people,",timestamp_plot))+
+  theme(legend.position = "bottom",plot.title = element_text(size=12))+
+  scale_color_manual(values = city_colors))
 
 write_plot(Corona_Cases.city.long.plot,wd = results_dir_custom)
 write_plot(Corona_Cases.city.loglong.plot,wd = results_dir_custom)
 write_plot(Corona_Cases.city.mortality.plot,wd = results_dir_custom)
 write_plot(Corona_Cases.city.casecor.plot,wd = results_dir_custom)
+write_plot(Corona_Cases.city.long.normalized.plot,wd = results_dir_custom)
 
 ```
 ### Q2: What is the predicted number of cases?
@@ -669,39 +698,41 @@ mobility<-read.csv("/Users/stevensmith/Projects/MIT_COVID19/mobility.csv",header
 ## Show relationship between mobility and caseload
 ##------------------------------------------
 mobility$County<-gsub(mobility$County,pattern = " County",replacement = "")
-Corona_Cases.US_state.tmp<-merge(Corona_Cases.US_state,plyr::rename(mobility,c("State"="Province.State","County"="City")))
+Corona_Cases.US_state.mobility<-merge(Corona_Cases.US_state,plyr::rename(mobility,c("State"="Province.State","County"="City")))
 
-Corona_Cases.US_state.tmp<-merge(metadata,Corona_Cases.US_state.tmp)
+#Corona_Cases.US_state.tmp<-merge(metadata,Corona_Cases.US_state.tmp)
 # Needs to happen upsteam, see todos
-Corona_Cases.US_state.tmp$Total_confirmed_cases.perperson<-Corona_Cases.US_state.tmp$Total_confirmed_cases/as.numeric(Corona_Cases.US_state.tmp$Population)
+#Corona_Cases.US_state.tmp$Total_confirmed_cases.perperson<-Corona_Cases.US_state.tmp$Total_confirmed_cases/as.numeric(Corona_Cases.US_state.tmp$Population)
 mobility_measures<-c("Retail_Recreation","Grocery_Pharmacy","Parks","Transit","Workplace","Residential")
 
-plot_data<-filter(Corona_Cases.US_state.tmp, Date.numeric==max(Corona_Cases.US_state.tmp$Date.numeric) ) %>% melt(measure.vars=mobility_measures) 
+plot_data<-filter(Corona_Cases.US_state.mobility, Date.numeric==max(Corona_Cases.US_state$Date.numeric) ) %>% melt(measure.vars=mobility_measures) 
 plot_data$value<-as.numeric(gsub(plot_data$value,pattern = "%",replacement = ""))
 plot_data<-filter(plot_data,!is.na(value))
 
-(mobility.plot<-ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(y=Total_confirmed_cases.perperson,x=value))+geom_point()+
+(mobility.plot<-ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(y=Total_confirmed_cases.per100,x=value))+geom_point()+
   facet_grid(Province.State~variable,scales = "free")+
   xlab("Mobility change from baseline (%)")+
-  ylab(paste0("Confirmed cases (Today)"))+
+  ylab(paste0("Confirmed cases per 100 people(Today)"))+
   default_theme+
   ggtitle("Mobility change vs cases"))
 
-(mobility.global.plot<-ggplot(plot_data,aes(y=Total_confirmed_cases.perperson,x=value))+geom_point()+
+(mobility.global.plot<-ggplot(plot_data,aes(y=Total_confirmed_cases.per100,x=value))+geom_point()+
   facet_wrap(~variable,scales = "free")+
   xlab("Mobility change from baseline (%)")+
-  ylab(paste0("Confirmed cases (Today)"))+
+  ylab(paste0("Confirmed cases (Today) per 100 people"))+
   default_theme+
   ggtitle("Mobility change vs cases"))
 
 
-plot_data.permobility_summary<-ddply(plot_data,c("Province.State","variable"),summarise,cor=cor(y =Total_confirmed_cases.perperson,x=value),median_change=median(x=value)) %>% arrange(-abs(cor))
+plot_data.permobility_summary<-ddply(plot_data,c("Province.State","variable"),summarise,cor=cor(y =Total_confirmed_cases.per100,x=value),median_change=median(x=value)) %>% arrange(-abs(cor))
 
 kable(plot_data.permobility_summary,caption = "Ranked per-state mobility correlation with total confirmed cases")
 
-ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(x=Total_confirmed_cases.perperson,fill=variable))+geom_histogram()+
+# sanity check
+ggplot(filter(plot_data,Province.State %in% c("Pennsylvania","Maryland","New Jersey","California","Delaware","Connecticut")),aes(x=Total_confirmed_cases.per100,fill=variable))+geom_histogram()+
   facet_grid(~Province.State)+
-  default_theme
+    default_theme+
+  theme(legend.position = "bottom")
 
 write_plot(mobility.plot,wd = results_dir)
 write_plot(mobility.global.plot,wd = results_dir)
@@ -737,13 +768,13 @@ deliverable_manifest<-data.frame(
   plot_handle=plot_handle,
   link=paste0(github_root,"results/",plot_handle,".png")
 )
-(tmp<-apply(deliverable_manifest,MARGIN = 1,FUN = function(x) paste(x[1],x[2],x[3],sep=" | ")))
+(tmp<-data.frame(row_out=apply(deliverable_manifest,MARGIN = 1,FUN = function(x) paste(x[1],x[2],x[3],sep=" | "))))
+row_out<-apply(tmp, 2, paste, collapse="\t\n")
 
-cat(tmp,sep = "\n")#paste(name,plot_handle,link,sep = " | ")
 ```
 name | handle | link
 ---- | ------ | ----
-`r cat(tmp,sep = "\n")`
+`r row_out`
 
 ## Tables
 
