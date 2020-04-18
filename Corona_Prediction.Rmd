@@ -3,9 +3,9 @@ title: "Corona_Analysis"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
 output:
-  pdf_document:
-    toc: yes
   html_document:
+    toc: yes
+  pdf_document:
     toc: yes
 ---
 
