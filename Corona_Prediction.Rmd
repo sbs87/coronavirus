@@ -753,13 +753,27 @@ This report, html & pdf
 ## Plots
 ```{r}
 github_root<-"https://github.com/sbs87/coronavirus/blob/master/"
-link<-paste0(github_root,"results/Corona_Cases.world.casecor.plot.png")
-section_ref<-'Q3'
-plot_handle<-c("Corona_Cases.world.casecor.plot","Corona_Cases.world.long.plot")
-name<-"World total & death cases, correlation"
+
+plot_handle<-c("Corona_Cases.world.long.plot",
+               "Corona_Cases.world.loglong.plot",
+               "Corona_Cases.world.mortality.plot",
+               "Corona_Cases.world.casecor.plot",
+               "Corona_Cases.city.long.plot",
+               "Corona_Cases.city.loglong.plot",
+               "Corona_Cases.city.mortality.plot",
+               "Corona_Cases.city.casecor.plot",
+               "Corona_Cases.city.long.normalized.plot")
+
 deliverable_manifest<-data.frame(
-  name=c("World total & death cases, correlation",
-         "World total & death cases, longitudinal"),
+  name=c("World total & death cases, longitudinal",
+         "World log total & death cases, longitudinal",
+         "World mortality",
+         "World total & death cases, correlation",
+         "City total & death cases, longitudinal",
+         "City log total & death cases, longitudinal",
+         "City mortality",
+         "City total & death cases, correlation",
+         "City population normalized total & death cases, longitudinal"),
   plot_handle=plot_handle,
   link=paste0(github_root,"results/",plot_handle,".png")
 )
@@ -817,7 +831,71 @@ ggplot(filter(tmp,Province.State=="Pennsylvania"), aes(Long, Lat, group = as.fac
   coord_quickmap()
 
 
+ggplot(Corona_Cases.US_state, aes(Long, Lat))+
+  geom_polygon(aes(fill = Total_confirmed_cases ), color = "white")+
+  scale_fill_viridis_c(option = "C")
+dev.off()
 
+
+require(maps)
+require(viridis)
+
+world_map <- map_data("world")
+ggplot(world_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white")
+
+head(world_map)
+head(Corona_Cases.US_state)
+unique(select(world_map,c("region","group"))) %>% filter()
+
+some.eu.countries <- c(
+  "US"
+)
+# Retrievethe map data
+some.eu.maps <- map_data("world", region = some.eu.countries)
+
+# Compute the centroid as the mean longitude and lattitude
+# Used as label coordinate for country's names
+region.lab.data <- some.eu.maps %>%
+  group_by(region) %>%
+  summarise(long = mean(long), lat = mean(lat))
+
+unique(filter(some.eu.maps,subregion %in% Corona_Cases.US_state$Province.State) %>% select(subregion))
+unique(Corona_Cases.US_state$Total_confirmed_cases.log)
+ggplot(filter(Corona_Cases.US_state,Date=="2020-04-17") aes(x = Long, y = Lat)) +
+  geom_polygon(aes( fill = Total_confirmed_cases.log))+
+  #geom_text(aes(label = region), data = region.lab.data,  size = 3, hjust = 0.5)+
+  #scale_fill_viridis_d()+
+  #theme_void()+
+  theme(legend.position = "none")
+library("sf")
+library("rnaturalearth")
+library("rnaturalearthdata")
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+ggplot(data = world) +
+    geom_sf()
+
+counties <- st_as_sf(map("county", plot = FALSE, fill = TRUE))
+counties <- subset(counties, grepl("florida", counties$ID))
+counties$area <- as.numeric(st_area(counties))
+#install.packages("lwgeom")
+class(counties)
+head(counties)
+ggplot(data = world) +
+    geom_sf(data=Corona_Cases.US_state) +
+    #geom_sf(data = counties, aes(fill = area)) +
+  geom_sf(data = counties, aes(fill = area)) +
+   # scale_fill_viridis_c(trans = "sqrt", alpha = .4) +
+    coord_sf(xlim = c(-88, -78), ylim = c(24.5, 33), expand = FALSE)
+
+
+head(counties)
+tmp<-unique(select(filter(Corona_Cases.US_state,Date=="2020-04-17"),c(Lat,Long,Total_confirmed_cases.per100)))
+st_as_sf(map("county", plot = FALSE, fill = TRUE))
+
+join::inner_join.sf(Corona_Cases.US_state, counties)
 ```
 
 
