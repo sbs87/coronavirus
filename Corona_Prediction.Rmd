@@ -3,9 +3,9 @@ title: "Corona_Analysis"
 author: "Steven Smith, PhD"
 date: "3/18/2020"
 output:
-  html_document:
-    toc: yes
   pdf_document:
+    toc: yes
+  html_document:
     toc: yes
 ---
 
@@ -106,9 +106,10 @@ List of functions
 
 function_name | description
 ------------- | -----------
-prediction_model |  outputs case estumate for given log-linear moder parameters slope and intercept 
-make_long        |  converts input data to long format (specialized cases)
-name_overlaps    |  outputs the column names intersection and set diffs of two data frame
+prediction_model  |  outputs case estumate for given log-linear moder parameters slope and intercept 
+make_long         |  converts input data to long format (specialized cases)
+name_overlaps     |  outputs the column names intersection and set diffs of two data frame
+find_linear_index |  finds the first date at which linearaity occurs  
 
 
 ```{r functions, eval=T}
@@ -119,9 +120,9 @@ name_overlaps    |  outputs the column names intersection and set diffs of two d
 # Takes days vs log10 (case) linear model parameters and a set of days since 100 cases and outputs a dataframe with total number of predicted cases for those days
 ## --- //// ----
 prediction_model<-function(m=1,b=0,days=1){
-  total_cases.log<-m*days+b
-  total_cases<-10^total_cases.log
-  prediction<-data.frame(Days_since_100=days,Total_confirmed_cases=total_cases,Total_confirmed_cases.log=total_cases.log)
+  total_cases<-m*days+b
+  total_cases.log<-log(total_cases,10)
+  prediction<-data.frame(days=days,Total_confirmed_cases_perstate=total_cases)
   return(prediction)
 }
 ##------------------------------------------
@@ -156,6 +157,45 @@ cat("intersection:\n",paste(i,"\n"))
 cat("in df1 but not df2:\n",paste(sd1,"\n"))
 cat("in df2 but not df1:\n",paste(sd2,"\n"))
 return(list("int"=i,"sd_1_2"=sd1,"sd_2_1"=sd2))
+}
+
+##------------------------------------------
+
+##------------------------------------------
+## FUNCTION: find_linear_index
+##------------------------------------------
+## --- //// ----
+# Find date at which total case data is linear (for a given data frame) 
+## --- //// ----
+
+find_linear_index<-function(tmp,running_avg=5){
+  tmp$Total_confirmed_cases_perstate.log<-log(tmp$Total_confirmed_cases_perstate,2)
+  derivative<-data.frame(matrix(nrow = nrow(tmp),ncol = 4))
+  names(derivative)<-c("m.time","mm.time","cumsum","date")
+  
+  # First derivative
+  for(t in 2:nrow(tmp)){
+    slope.t<- tmp[t,"Total_confirmed_cases_perstate.log"]- tmp[t-1,"Total_confirmed_cases_perstate.log"]
+    derivative[t,"m.time"]<-slope.t
+    derivative[t,"date"]<-as.Date(tmp[t,"Date"])
+  }
+  
+  # Second derivative
+  for(t in 2:nrow(derivative)){
+    slope.t<- derivative[t,"m.time"]- derivative[t-1,"m.time"]
+    derivative[t,"mm.time"]<-slope.t
+  }
+  
+  #Compute running sum of second derivative (window = 5). Choose point at which within 0.2
+  for(t in running_avg:nrow(derivative)){
+    slope.t<- sum(abs(derivative[t:(t-4),"mm.time"])<0.2,na.rm = T)
+    derivative[t,"cumsum"]<-slope.t
+  }
+  
+  #Find date -5 from the stablility point
+  linear_begin<-min(derivative[!is.na(derivative$cumsum) & derivative$cumsum==running_avg,"date"])-running_avg
+  
+  return(linear_begin)
 }
 
 ```
@@ -565,9 +605,111 @@ write_plot(Corona_Cases.city.casecor.plot,wd = results_dir_custom)
 write_plot(Corona_Cases.city.long.normalized.plot,wd = results_dir_custom)
 
 ```
+### Q1b what is the model
+Fit the cases to a linear model
+1. Find time at which the case vs date becomes linear in each plot  
+2. Fit linear model for each city 
+
+```{r}
+
+# What is the predict # of cases for the next few days?
+# How is the model performing historically?
+
+Corona_Cases.US_state.summary<-ddply(Corona_Cases.US_state,
+                                     c("Province.State","Date"),
+                                     summarise,
+                                     Total_confirmed_cases_perstate=sum(Total_confirmed_cases)) %>% 
+    filter(Total_confirmed_cases_perstate>100)
+
+# Compute the states with the most cases (for coloring and for linear model)
+top_states_totals<-head(ddply(Corona_Cases.US_state.summary,c("Province.State"),summarise, Total_confirmed_cases_perstate.max=max(Total_confirmed_cases_perstate)) %>% arrange(-Total_confirmed_cases_perstate.max),n=max_colors)
+
+kable(top_states_totals,caption = "Top 12 States, total count ")
+top_states<-top_states_totals$Province.State
+
+# Manually fix states so that Maryland is switched out for New York
+top_states_modified<-c(top_states[top_states !="New York"],"Maryland")
+
+# Plot with all states:
+(Corona_Cases.US_state.summary.plot<-ggplot(Corona_Cases.US_state.summary,aes(x=Date,y=Total_confirmed_cases_perstate))+
+  geom_point()+
+  geom_point(data=filter(Corona_Cases.US_state.summary,Province.State %in% top_states),aes(col=Province.State))+
+  scale_color_brewer(type = "qualitative",palette = "Paired")+
+  default_theme+
+  theme(axis.text.x = element_text(angle=45,hjust=1),legend.position = "bottom")+
+  ggtitle("Total confirmed cases per state, top 12 colored")+
+  scale_x_date(date_breaks="1 week",date_minor_breaks="1 day"))
+
+##------------------------------------------
+## Fit linear model to time vs total cases
+##-----------------------------------------
+
+# First, find the date at which each state's cases vs time becomes lienar (2nd derivative is about 0)
+li<-ddply(Corona_Cases.US_state.summary,c("Province.State"),find_linear_index)
+
+# Compute linear model for each state starting at the point at which data becomes linear
+for(i in 1:nrow(li)){
+  Province.State.i<-li[i,"Province.State"]
+  date.i<-li[i,"V1"]
+  data.i<-filter(Corona_Cases.US_state.summary,Province.State==Province.State.i & as.numeric(Date) >= date.i)
+  model_results<-lm(data.i,formula = Total_confirmed_cases_perstate~Date)
+  slope<-model_results$coefficients[2]
+  intercept<-model_results$coefficients[1]
+  li[li$Province.State==Province.State.i,"m"]<-slope
+  li[li$Province.State==Province.State.i,"b"]<-intercept
+  }
+
+# Compute top state case load with fitted model
+
+(Corona_Cases.US_state.lm.plot<-ggplot(filter(Corona_Cases.US_state.summary,Province.State %in% top_states_modified ))+
+    geom_abline(data=filter(li,Province.State %in% top_states_modified),
+                aes(slope = m,intercept = b,col=Province.State),lty=2)+
+    geom_point(aes(x=Date,y=Total_confirmed_cases_perstate,col=Province.State))+
+    scale_color_brewer(type = "qualitative",palette = "Paired")+
+    default_theme+
+    theme(axis.text.x = element_text(angle=45,hjust=1),legend.position = "bottom")+
+    ggtitle("Total confirmed cases per state, top 12 colored")+
+    scale_x_date(date_breaks="1 week",date_minor_breaks="1 day"))
+
+##------------------------------------------
+## Predict the number of total cases over the next week
+##-----------------------------------------
+
+predicted_days<-c(0,1,2,3,7)+as.numeric(as.Date("2020-04-20"))
+
+predicted_days_df<-data.frame(matrix(ncol=3))
+names(predicted_days_df)<-c("Province.State","days","Total_confirmed_cases_perstate")
+
+# USe model parameters to estiamte case loads
+for(state.i in top_states_modified){
+  predicted_days_df<-rbind(predicted_days_df,
+                           data.frame(Province.State=state.i,
+                                      prediction_model(m = li[li$Province.State==state.i,"m"],
+                                                       b =li[li$Province.State==state.i,"b"] ,
+                                                       days =predicted_days )))
+  }
+
+predicted_days_df$Date<-as.Date(predicted_days_df$days,origin="1970-01-01")
+
+kable(predicted_days_df,caption = "Predicted total cases over the next week for selected states")
+
+##------------------------------------------
+## Write plots
+##-----------------------------------------
+
+write_plot(Corona_Cases.US_state.summary.plot,wd = results_dir)
+write_plot(Corona_Cases.US_state.lm.plot,wd = results_dir)
+
+##------------------------------------------
+## Write tables
+##-----------------------------------------
+
+write.csv(predicted_days_df,file = paste0(results_dir,"predicted_total_cases_days.csv"),quote = F,row.names = F)
+```
+
 ### Q2: What is the predicted number of cases?
 
-#### What is the prediction of COVID-19 based on model thus far?
+What is the prediction of COVID-19 based on model thus far?
 Additional questions:
 
 WHy did it take to day 40 to start a log linear trend?
@@ -580,19 +722,7 @@ Are any effects noticed with social distancing? Delays
 ## Prediction and Prediction Accuracy
 ##------------------------------------------
 
-# What is the predict # of cases for the next few days?
-# How is the model performing historically?
 
-# Formula for # of cases by x days
-paste0("log10_total_cases = ",slope,"*days + ",intercept)
-paste0("total_cases = 10^(",slope,"*days + ",intercept,")")
-#Days untill... cases:
-# 2.5k, 5k and 1M:
-paste0("2.5k cases is ",(log(2.5E5,10) - intercept)/slope," days")
-paste0("5k cases is ",(log(5E5,10)- intercept)/slope," days")
-paste0("1M cases is ",(log(1E6,10)- intercept)/slope," days")
-
-head(filter(Corona_Cases.raw,Country.Region=="US"))
 today_num<-max(Corona_Cases.US$Days_since_100)
 predicted_days<-today_num+c(1,2,3,7)
 
@@ -601,34 +731,30 @@ predicted_days<-today_num+c(1,2,3,7)
 Corona_Cases.US[Corona_Cases.US$Days_since_100==(today_num-1),]
 Corona_Cases.US[Corona_Cases.US$Days_since_100==today_num,]
 Corona_Cases.US$type<-"Historical"
-names(Corona_Cases)
 
-Corona_Cases_wprediction<-rbind.fill(Corona_Cases.US,data.frame(Code="USA",type="MAR26_prediction",prediction_model(m=slope,b=intercept,days = predicted_days)))
 
-Corona_Cases.US.prediction<-Corona_Cases_wprediction 
-prediction_values<-prediction_model(m=slope,b=intercept,days = predicted_days)$Total_confirmed_cases
+#prediction_values<-prediction_model(m=slope,b=intercept,days = predicted_days)$Total_confirmed_cases
 
-histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
+#histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
 
 # model for previous y days
-historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
-for(i in c(1,2,3,4,5,6,7,8,9,10)){
-  #i<-1
-day_x<-today_num-i # 1, 2, 3, 4
-day_x_nextweek<-day_x+c(1,2,3)
-model_fit_x<-lm(data = filter(Corona_Cases.US.case100,Days_since_100 < day_x),formula = Total_confirmed_cases.log~Days_since_100)
-prediction_day_x_nextweek<-prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek)
-prediction_day_x_nextweek$type<-"Predicted"
-acutal_day_x_nextweek<-filter(Corona_Cases.US,Days_since_100 %in% day_x_nextweek) %>% select(c(Days_since_100,Total_confirmed_cases,Total_confirmed_cases.log))
-acutal_day_x_nextweek$type<-"Historical"
-historical_model_predictions.i<-data.frame(day_x=day_x,rbind(acutal_day_x_nextweek,prediction_day_x_nextweek))
-historical_model_predictions<-rbind(historical_model_predictions.i,historical_model_predictions)
-}
+#historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
+# for(i in c(1,2,3,4,5,6,7,8,9,10)){
+#   #i<-1
+# day_x<-today_num-i # 1, 2, 3, 4
+# day_x_nextweek<-day_x+c(1,2,3)
+# model_fit_x<-lm(data = filter(Corona_Cases.US.case100,Days_since_100 < day_x),formula = Total_confirmed_cases.log~Days_since_100)
+# prediction_day_x_nextweek<-prediction_model(m = model_fit_x$coefficients[2],b = model_fit_x$coefficients[1],days = day_x_nextweek)
+# prediction_day_x_nextweek$type<-"Predicted"
+# acutal_day_x_nextweek<-filter(Corona_Cases.US,Days_since_100 %in% day_x_nextweek) %>% select(c(Days_since_100,Total_confirmed_cases,Total_confirmed_cases.log))
+# acutal_day_x_nextweek$type<-"Historical"
+# historical_model_predictions.i<-data.frame(day_x=day_x,rbind(acutal_day_x_nextweek,prediction_day_x_nextweek))
+# historical_model_predictions<-rbind(historical_model_predictions.i,historical_model_predictions)
+# }
 
-historical_model_predictions.withHx<-rbind.fill(historical_model_predictions,data.frame(Corona_Cases.US,type="Historical"))
-historical_model_predictions.withHx$Total_confirmed_cases.log2<-log(historical_model_predictions.withHx$Total_confirmed_cases,2)
-#TODO: fix case_type.. are we predicting deaths too?
-#TODO: better analysis of death rate!
+#historical_model_predictions.withHx<-rbind.fill(historical_model_predictions,data.frame(Corona_Cases.US,type="Historical"))
+#historical_model_predictions.withHx$Total_confirmed_cases.log2<-log(historical_model_predictions.withHx$Total_confirmed_cases,2)
+
 (historical_model_predictions.plot<-ggplot(historical_model_predictions.withHx,aes(x=Days_since_100,y=Total_confirmed_cases.log,col=type))+
     geom_point(size=3)+
     default_theme+
@@ -639,37 +765,6 @@ historical_model_predictions.withHx$Total_confirmed_cases.log2<-log(historical_m
 write_plot(historical_model_predictions.plot,wd=results_dir)
 ```
 
-
-```{r question2, eval=F}
-
-##------------------------------------------
-## filter input_data1
-##------------------------------------------
-input_data1.filter<-fitler(input_data1,col1=="foo")
-##------------------------------------------
-
-##------------------------------------------
-## sub question 1
-##------------------------------------------
-table(input_data1.filter$col<5)
-##------------------------------------------
-
-##------------------------------------------
-## sub question 2
-##------------------------------------------
-table(input_data1.filter$col<10)
-##------------------------------------------
-
-##------------------------------------------
-## plot data
-##------------------------------------------
-(input_data1.filter.plot<-ggplot(input_data1.filter,aes(x=col1,y=col2.log))+
-   geom_point()+
-   default_plot_theme)
-write_plot(input_data1.filter.plot,wd=results_dir)
-##------------------------------------------
-results_dir
-```
 
 ### Q3: What is the effect on social distancing, descreased mobility on case load?
 Load data from Google which compoutes % change in user mobility relative to baseline for
@@ -762,7 +857,10 @@ plot_handle<-c("Corona_Cases.world.long.plot",
                "Corona_Cases.city.loglong.plot",
                "Corona_Cases.city.mortality.plot",
                "Corona_Cases.city.casecor.plot",
-               "Corona_Cases.city.long.normalized.plot")
+               "Corona_Cases.city.long.normalized.plot",
+               "Corona_Cases.US_state.lm.plot",
+               "Corona_Cases.US_state.summary.plot")
+
 
 deliverable_manifest<-data.frame(
   name=c("World total & death cases, longitudinal",
@@ -773,12 +871,17 @@ deliverable_manifest<-data.frame(
          "City log total & death cases, longitudinal",
          "City mortality",
          "City total & death cases, correlation",
-         "City population normalized total & death cases, longitudinal"),
+         "City population normalized total & death cases, longitudinal",
+         "State total cases (select) with linear model, longitudinal",
+         "State total cases, longitudinal"),
   plot_handle=plot_handle,
   link=paste0(github_root,"results/",plot_handle,".png")
 )
+
+
 (tmp<-data.frame(row_out=apply(deliverable_manifest,MARGIN = 1,FUN = function(x) paste(x[1],x[2],x[3],sep=" | "))))
 row_out<-apply(tmp, 2, paste, collapse="\t\n")
+
 
 ```
 name | handle | link
@@ -786,6 +889,8 @@ name | handle | link
 `r row_out`
 
 ## Tables
+
+
 
 # CONCLUSION
 Overall, the trends of COVID-19 cases is no longer in log-linear phase for world or U.S. (but some regions like MD are still in the log-linear phase). Mortality rate (deaths/confirmed RNA-based cases) is >1%, with a range depending on region. Mobility is not a strong indicator of caseload (U.S. data).
@@ -896,6 +1001,20 @@ tmp<-unique(select(filter(Corona_Cases.US_state,Date=="2020-04-17"),c(Lat,Long,T
 st_as_sf(map("county", plot = FALSE, fill = TRUE))
 
 join::inner_join.sf(Corona_Cases.US_state, counties)
+
+library(sf)
+library(sp)
+
+nc <- st_read(system.file("shape/nc.shp", package="sf"))
+class(nc)
+
+
+spdf <- SpatialPointsDataFrame(coords = select(Corona_Cases.US_state,c("Lat","Long")), data = Corona_Cases.US_state,
+                               proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+head(spdf)
+class(spdf)
+st_cast(spdf)
 ```
 
 
