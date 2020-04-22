@@ -557,8 +557,9 @@ city_colors<-c("Bucks"='#beaed4',"Baltimore City"='#386cb0', "New York"='#7fc97f
   default_theme+
   #facet_wrap(~case_type)+
     ggtitle(paste("Log10 total and death cases over time,",timestamp_plot))+
-theme(legend.position = "bottom",plot.title = element_text(size=12))+
-    scale_color_manual(values = city_colors))
+theme(legend.position = "bottom",plot.title = element_text(size=12),axis.text.x = element_text(angle=45,hjust=1))+
+    scale_color_manual(values = city_colors)+
+  scale_x_date(date_breaks="1 week",date_minor_breaks="1 day"))
 
 
 (Corona_Cases.city.long.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Date,y=Total_confirmed_cases,col=City))+
@@ -567,8 +568,10 @@ theme(legend.position = "bottom",plot.title = element_text(size=12))+
   default_theme+
   facet_grid(~Province.State,scales = "free_y")+
   ggtitle(paste("MD, PA, NJ total cases over time,",timestamp_plot))+
-  theme(legend.position = "bottom",plot.title = element_text(size=12))+
-  scale_color_manual(values = city_colors))
+  theme(legend.position = "bottom",plot.title = element_text(size=12),axis.text.x = element_text(angle=45,hjust=1))
++
+  scale_color_manual(values = city_colors)+
+  scale_x_date(date_breaks="1 week",date_minor_breaks="1 day"))
 
 
 (Corona_Cases.city.mortality.plot<-ggplot(Corona_Cases.US.plotdata,aes(x=Date,y=mortality_rate,col=City))+
@@ -576,8 +579,10 @@ theme(legend.position = "bottom",plot.title = element_text(size=12))+
   geom_line(size=2)+
   default_theme+
   ggtitle(paste("Mortality rate (deaths/total) over time,",timestamp_plot))+
-  theme(legend.position = "bottom",plot.title = element_text(size=12))+
-  scale_color_manual(values = city_colors))
+  theme(legend.position = "bottom",plot.title = element_text(size=12),axis.text.x = element_text(angle=45,hjust=1))+
+  scale_color_manual(values = city_colors)+
+  scale_x_date(date_breaks="1 week",date_minor_breaks="1 day"))
+
 
 
 (Corona_Cases.city.casecor.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(y=Total_confirmed_deaths,x=Total_confirmed_cases,col=City))+
@@ -595,8 +600,9 @@ theme(legend.position = "bottom",plot.title = element_text(size=12))+
   default_theme+
   facet_grid(~Province.State)+
   ggtitle(paste("MD, PA, NJ total cases over time per 100 people,",timestamp_plot))+
-  theme(legend.position = "bottom",plot.title = element_text(size=12))+
-  scale_color_manual(values = city_colors))
+  theme(legend.position = "bottom",plot.title = element_text(size=12),axis.text.x = element_text(angle=45,hjust=1))+
+  scale_color_manual(values = city_colors)  +
+  scale_x_date(date_breaks="1 week",date_minor_breaks="1 day"))
 
 write_plot(Corona_Cases.city.long.plot,wd = results_dir_custom)
 write_plot(Corona_Cases.city.loglong.plot,wd = results_dir_custom)
@@ -861,7 +867,7 @@ The following link to commited documents pushed to github. These are provided as
 This report, html & pdf
 
 ## Plots
-```{r, eval=F}
+```{r, eval=T}
 github_root<-"https://github.com/sbs87/coronavirus/blob/master/"
 
 plot_handle<-c("Corona_Cases.world.long.plot",
