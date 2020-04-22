@@ -580,7 +580,7 @@ theme(legend.position = "bottom",plot.title = element_text(size=12))+
   scale_color_manual(values = city_colors))
 
 
-(Corona_Cases.city.casecor.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(x=Total_confirmed_deaths,y=Total_confirmed_cases,col=City))+
+(Corona_Cases.city.casecor.plot<-ggplot(filter(Corona_Cases.US.plotdata,Province.State !="New York"),aes(y=Total_confirmed_deaths,x=Total_confirmed_cases,col=City))+
   geom_point(size=3)+
   geom_line(size=2)+
   default_theme+
@@ -610,7 +610,7 @@ Fit the cases to a linear model
 1. Find time at which the case vs date becomes linear in each plot  
 2. Fit linear model for each city 
 
-```{r}
+```{r build_model, eval=F}
 
 # What is the predict # of cases for the next few days?
 # How is the model performing historically?
@@ -735,8 +735,23 @@ Corona_Cases.US$type<-"Historical"
 
 #prediction_values<-prediction_model(m=slope,b=intercept,days = predicted_days)$Total_confirmed_cases
 
-#histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
+histoical_model<-data.frame(date=today_num,m=slope,b=intercept)
+tmp<-data.frame(state=rep(c("A","B"),each=3),x=c(1,2,3,4,5,6))
+tmp$y<-c(tmp[1:3,"x"]+5,tmp[4:6,"x"]*5+1)
+ddply(tmp,c("state"))
+lm(data =tmp,formula = y~x )
 
+train_lm<-function(input_data,subset_coulmn,formula_input){
+case_models <- dlply(input_data, subset_coulmn, lm, formula = formula_input)
+case_models.parameters <- ldply(case_models, coef)
+case_models.parameters<-rename(case_models.parameters,c("b"="(Intercept)","m"=subset_coulmn))
+return(case_models.parameters)
+}
+
+train_lm(tmp,"state")
+
+ dlply(input_data, subset_coulmn, lm,m=)
+ 
 # model for previous y days
 #historical_model_predictions<-data.frame(day_x=NULL,Days_since_100=NULL,Total_confirmed_cases=NULL,Total_confirmed_cases.log=NULL)
 # for(i in c(1,2,3,4,5,6,7,8,9,10)){
@@ -846,7 +861,7 @@ The following link to commited documents pushed to github. These are provided as
 This report, html & pdf
 
 ## Plots
-```{r}
+```{r, eval=F}
 github_root<-"https://github.com/sbs87/coronavirus/blob/master/"
 
 plot_handle<-c("Corona_Cases.world.long.plot",
@@ -1015,6 +1030,8 @@ spdf <- SpatialPointsDataFrame(coords = select(Corona_Cases.US_state,c("Lat","Lo
 head(spdf)
 class(spdf)
 st_cast(spdf)
+
+filter(Corona_Cases.US_state.summary,Date=="2020-04-20" & Province.State %in% top_states_modified)
 ```
 
 
