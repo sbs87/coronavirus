@@ -422,7 +422,7 @@ Corona_Cases.US<-filter(Corona_Cases,Country.Region=="US" & Total_confirmed_case
 #!City %in% c("Unassigned") 
   #    - specific cities
 #mortality_rate!=Inf & mortality_rate<=1
-Corona_Cases.UScity<-filter(Corona_Cases,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington"))
+Corona_Cases.UScity<-filter(Corona_Cases,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") & City %in% c("Bucks","Baltimore City", "New York","Burlington","Cape May"))
 
 measure_vars_long<-c("Total_confirmed_cases.log","Total_confirmed_cases","Total_confirmed_deaths","Total_confirmed_deaths.log")
 melt_arg_list<-list(variable.name = "case_type",value.name = "cases",measure.vars = c("Total_confirmed_cases","Total_confirmed_deaths"))
@@ -542,11 +542,11 @@ Corona_Cases.US_state.long.plot<-baseplot.US+geom_point(data=Corona_Cases.US_sta
 ##-----------------------------------------
 
 Corona_Cases.US.plotdata<-filter(Corona_Cases.US_state,Province.State %in% c("Pennsylvania","Maryland","New York","New Jersey") &
-                                   City %in% c("Bucks","Baltimore City", "New York","Burlington") &
+                                   City %in% c("Bucks","Baltimore City", "New York","Burlington","Cape May") &
                                    Total_confirmed_cases>0) 
 timestamp_plot<-paste("Most recent date for which data available:",max(Corona_Cases.US.plotdata$Date))#timestamp(quiet = T,prefix = "Updated ",suffix = " (EST)")
 
-city_colors<-c("Bucks"='#beaed4',"Baltimore City"='#386cb0', "New York"='#7fc97f',"Burlington"='#fdc086')
+city_colors<-c("Bucks"='#beaed4',"Baltimore City"='#386cb0', "New York"='#7fc97f',"Burlington"='#fdc086',"Cape May"="#e78ac3")
 
 ##/////////////////////////
 ### Plot death vs total case correlation
